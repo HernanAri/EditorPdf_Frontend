@@ -1,0 +1,94 @@
+/* You can add global styles to this file, and also import other style files */
+@use './tailwind.css';
+@use './assets/layout/layout.scss';
+@use 'primeicons/primeicons.css';
+@use './assets/demo/demo.scss';
+
+
+// ----------------------------------------------------------- loader spinner -----------------------------------------------------------
+#ProcesoAjax {
+  background-color: rgba(230, 230, 230, 0.5);
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+.wrap {
+  display: flex;
+  /* Usa Flexbox */
+  justify-content: center;
+  /* Centra horizontalmente */
+  align-items: center;
+  /* Centra verticalmente */
+  box-shadow: 0px 40px 60px -20px rgba(0, 0, 0, 0.2);
+}
+
+.sppiner {
+  width: 80px;
+  height: 80px;
+  background: #a09e9e46;
+  border-radius: 50%;
+  position: relative;
+  margin: 50px;
+  display: inline-block;
+}
+
+.sppiner:after,
+.sppiner:before {
+  content: "";
+  display: block;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+@keyframes spinny {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.sppiner-2 {
+  animation: spin 1.5s linear infinite;
+}
+
+.sppiner-2:before,
+.sppiner-2:after {
+  height: 20px;
+  width: 20px;
+  background: orangered;
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  margin-left: -10px;
+}
+
+.sppiner-2:after {
+  top: auto;
+  bottom: -10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// ----------------------------------------------------------- loader spinner fin -----------------------------------------------------------

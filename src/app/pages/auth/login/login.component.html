@@ -1,0 +1,46 @@
+<app-floating-configurator />
+<p-toast />
+<div
+    class="container-auth bg-white [background:radial-gradient(125%_125%_at_50%_10%,#fff_40%,#63e_100%)] flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
+    <div class="flex flex-col items-center justify-center ">
+        <div
+            style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
+            <div class="w-full bg-surface-0 dark:bg-surface-900 py-12 px-8 sm:px-20" style="border-radius: 53px">
+                <div class="text-center mb-8">
+                    <img src="assets/images/logo_emergia.png" class="mb-4 shrink-0 mx-auto" width="240" alt="">
+                    <span class="text-muted-color font-medium">Inicia sesión para continuar</span>
+                </div>
+
+                <div class="mb-3" *ngIf="checkIsLoginAD">
+                    <p-select [options]="domains" [optionLabel]="'Description'" [optionValue]="'Domain'"
+                        [(ngModel)]="domain" placeholder="Selecciona el dominio" styleClass="w-full">
+                    </p-select>
+                </div>
+
+                <div>
+                    <label for="email1"
+                        class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Usuario</label>
+                    <input pInputText id="email1" type="text" placeholder="Ingresa el usuario"
+                        class="w-full md:w-[30rem] mb-8" [(ngModel)]="usuario" />
+
+                    <label for="password1"
+                        class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Contraseña</label>
+                    <p-password id="password1" [(ngModel)]="password" (keydown.enter)="iniciarSesion()"
+                        placeholder="Contraseña" [toggleMask]="true" styleClass="mb-4" [fluid]="true"
+                        [feedback]="false"></p-password>
+
+                    <p-button label="Ingresar" (click)="iniciarSesion()" styleClass="w-full mt-5"
+                        class="bg-primary-400"></p-button>
+                </div>
+
+                <div class="flex justify-center">
+                    <div class="mt-4">
+                        <input [(ngModel)]="checkIsLoginAD" name="checkisLoginAD" (click)="cargarDominios()"
+                            id="checkisLoginAD" type="checkbox" class="mr-2 form-check-input" />
+                        <label for="checkisLoginAD">Iniciar con Directorio Activo</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
