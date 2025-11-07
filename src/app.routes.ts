@@ -19,4 +19,5 @@ export const appRoutes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'login/:idSesion', component: LoginComponent },
     { path: '**', redirectTo: '/notfound' }
+    { path: 'pdf/upload', component: UploadComponent}
 ];
