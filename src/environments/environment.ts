@@ -5,5 +5,5 @@ export const environment = {
   apiUrlAutenticacionAD: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/LoginFT?IdiomaNavegador=ES&Sistema=CANS',
   apiUrlDominio: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/GetDomainsActiveDirectoryFromJsonAsync',
   apiUrlArquitecturaPuestos: 'https://devapps.emergiacc.com/ApiRestArquitecturaPuestos/api/v1',
-  apiUrl: 'http://localhost:8000',
+  apiUrl: 'http://localhost:8000/api/v1',
 };

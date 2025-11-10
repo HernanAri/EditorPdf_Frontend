@@ -23,7 +23,7 @@ export class AppMenu {
             {
                 label: 'Inicio',
                 items: [
-                    { label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/dashboard'] },
+                    { label: 'Subir PDFs', icon: 'pi pi-fw pi-upload', routerLink: ['/pdf/upload'] }
                 ]
             },
             // {

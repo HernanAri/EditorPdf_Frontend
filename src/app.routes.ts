@@ -13,18 +13,12 @@ export const appRoutes: Routes = [
         path: '', canActivate: [UserGuard],
         component: AppLayout,
         children: [
-            { path: 'dashboard', component: Dashboard, canActivate: [UserGuard] },
+            { path: 'pdf/upload', component: UploadComponent, canActivate: [UserGuard] },
         ]
     },
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
     { path: 'login', component: LoginComponent },
     { path: 'login/:idSesion', component: LoginComponent },
-<<<<<<< HEAD
-    { path: '**', redirectTo: '/notfound' }
-    { path: 'pdf/upload', component: UploadComponent}
-=======
     { path: '**', redirectTo: '/notfound' },
-    { path: 'pdf/upload', Component: UploadComponent},
->>>>>>> feature/smp
 ];
