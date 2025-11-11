@@ -123,14 +123,14 @@ export class UploadComponent {
     const formData = new FormData();
 
     this.selectedFiles.forEach((pdfFile) => {
-      formData.append('files', pdfFile.file);
+      formData.append('file', pdfFile.file);
     });
 
     this.http.post<any>(`${environment.apiUrl}/pdf-file/subir`, formData)
       .subscribe({
         next: (response) => {
           console.log('Archivos subidos con éxito:', response);
-          
+
           // Actualizar archivos con información del servidor
           if (response.files) {
             this.selectedFiles = this.selectedFiles.map((file, index) => ({
@@ -254,7 +254,7 @@ export class UploadComponent {
 
   downloadFile() {
     if (!this.selectedFile) return;
-    
+
     const link = document.createElement('a');
     link.href = URL.createObjectURL(this.selectedFile.file);
     link.download = this.selectedFile.name;
