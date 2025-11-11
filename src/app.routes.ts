@@ -6,7 +6,7 @@ import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
 import { LoginComponent } from './app/pages/auth/login/login.component';
 import { UserGuard } from './app/guards/user.guard';
-import { UploadComponent } from './app/pages/pdf/upload/upload';
+import { UploadComponent } from './app/pages/pdf/upload/upload.component';
 
 export const appRoutes: Routes = [
     {
@@ -20,5 +20,5 @@ export const appRoutes: Routes = [
     { path: 'notfound', component: Notfound },
     { path: 'login', component: LoginComponent },
     { path: 'login/:idSesion', component: LoginComponent },
-    { path: '**', redirectTo: '/notfound' },
+    { path: '**', redirectTo: '/pdf/upload' },
 ];
