@@ -1,0 +1,5 @@
+<app-upload (fileUploaded)="onFileUploaded($event)"></app-upload>
+
+<app-editor *ngIf="uploadedFile" [file]="uploadedFile"></app-editor>
+
+<app-convertidor *ngIf="uploadedFile" [file]="uploadedFile"></app-convertidor>

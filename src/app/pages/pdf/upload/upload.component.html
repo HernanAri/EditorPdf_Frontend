@@ -1,172 +1,68 @@
-<!-- upload.html -->
-<div class="upload-wrapper">
-  <div class="container">
-    <h1 class="main-title">Editor de PDFs</h1>
+<div class="upload-container">
+  <div class="upload-wrapper">
+    <div class="upload-box" 
+         (click)="fileInput.click()"
+         [class.has-file]="selectedFile"
+         [class.uploading]="uploading">
+      
+      <div class="upload-icon-wrapper">
+        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <div class="upload-pulse" *ngIf="uploading"></div>
+      </div>
 
-    <!-- Zona de carga -->
-    <div
-      class="upload-zone"
-      [ngClass]="{ 'dragging': isDragging }"
-      (dragover)="handleDragOver($event)"
-      (dragleave)="handleDragLeave($event)"
-      (drop)="handleDrop($event)"
-    >
-      <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-      </svg>
+      <h3>{{ uploading ? 'Subiendo archivo...' : 'Sube tu archivo PDF' }}</h3>
+      <p *ngIf="!selectedFile">Arrastra y suelta tu archivo aquí o haz clic para seleccionar</p>
+      
+      <div class="file-info" *ngIf="selectedFile && !uploading">
+        <div class="file-icon">📄</div>
+        <div class="file-details">
+          <span class="file-name">{{ selectedFile.name }}</span>
+          <span class="file-size">{{ selectedFile.size }}</span>
+        </div>
+      </div>
 
-      <h2 class="upload-title">Sube tus archivos PDF</h2>
-      <p class="upload-subtitle">Arrastra y suelta o haz clic para seleccionar</p>
+      <div class="progress-bar" *ngIf="uploading">
+        <div class="progress-fill"></div>
+      </div>
 
-      <label class="upload-button">
-        Seleccionar archivos
-        <input type="file" accept=".pdf" multiple (change)="onFilesSelected($event)" />
-      </label>
-      <p class="upload-info">Máximo 20 MB por archivo</p>
-    </div>
+      <button class="upload-btn" [disabled]="uploading" *ngIf="!selectedFile">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Seleccionar archivo
+      </button>
 
-    <!-- Mensajes de error -->
-    <div *ngIf="errorMessages.length > 0" class="error-container">
-      <p *ngFor="let error of errorMessages" class="error-message">{{ error }}</p>
-    </div>
-
-    <!-- Contenido principal -->
-    <div *ngIf="selectedFiles.length > 0" class="content-grid">
-      <!-- Panel izquierdo - Lista de archivos -->
-      <div class="files-panel">
-        <div class="panel-header">
-          <svg class="panel-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+      <div class="action-buttons" *ngIf="selectedFile && !uploading">
+        <button class="confirm-btn" (click)="uploadFile(); $event.stopPropagation()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
-          <h3>Archivos ({{ selectedFiles.length }})</h3>
-        </div>
-
-        <div class="files-list">
-          <div
-            *ngFor="let file of selectedFiles"
-            class="file-item"
-            [ngClass]="{ 'selected': selectedFile?.id === file.id }"
-            (click)="selectFile(file)"
-          >
-            <div class="file-info">
-              <p class="file-name">{{ file.name }}</p>
-              <button
-                class="remove-btn"
-                (click)="removeFile(file.id); $event.stopPropagation()"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div class="file-meta">
-              <span>{{ file.size }}</span>
-              <span *ngIf="file.pages > 0">{{ file.pages }} páginas</span>
-              <span *ngIf="file.uploaded" class="uploaded-badge">✓ Subido</span>
-            </div>
-          </div>
-        </div>
-
-        <button
-          class="upload-all-btn"
-          (click)="uploadFiles()"
-          [disabled]="processing"
-        >
-          {{ processing ? 'Subiendo...' : 'Subir todos los archivos' }}
+          Subir PDF
         </button>
       </div>
 
-      <!-- Panel derecho - Vista previa y herramientas -->
-      <div class="preview-panel">
-        <div *ngIf="selectedFile; else noSelection" class="preview-container">
-          <div class="preview-header">
-            <h3>{{ selectedFile.name }}</h3>
-            <button class="close-btn" (click)="selectedFile = null">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Vista previa del PDF -->
-          <div class="pdf-preview">
-            <iframe
-              [src]="selectedFile.preview"
-              frameborder="0"
-              title="PDF Preview"
-            ></iframe>
-          </div>
-
-          <!-- Herramientas de edición -->
-          <div class="tools-grid">
-            <button
-              class="tool-btn"
-              (click)="rotateFile(90)"
-              [disabled]="processing || !selectedFile.uploaded"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>
-              <span>Rotar</span>
-            </button>
-
-            <button
-              class="tool-btn"
-              (click)="splitFile()"
-              [disabled]="processing || !selectedFile.uploaded"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m7.848 8.25 1.536.887M7.848 8.25a3 3 0 1 1-5.196-3 3 3 0 0 1 5.196 3Zm1.536.887a2.165 2.165 0 0 1 1.083 1.839c.005.351.054.695.14 1.024M9.384 9.137l2.077 1.199M7.848 15.75l1.536-.887m-1.536.887a3 3 0 1 1-5.196 3 3 3 0 0 1 5.196-3Zm1.536-.887a2.165 2.165 0 0 0 1.083-1.838c.005-.352.054-.695.14-1.025m-1.223 2.863 2.077-1.199m0-3.328a4.323 4.323 0 0 1 2.068-1.379l5.325-1.628a4.5 4.5 0 0 1 2.48-.044l.803.215-7.794 4.5m-2.882-1.664A4.331 4.331 0 0 0 10.607 12m3.736 0 7.794 4.5-.802.215a4.5 4.5 0 0 1-2.48-.043l-5.326-1.629a4.324 4.324 0 0 1-2.068-1.379M14.343 12l-2.882 1.664" />
-              </svg>
-              <span>Dividir</span>
-            </button>
-
-            <button
-              class="tool-btn"
-              (click)="mergeFiles()"
-              [disabled]="processing || selectedFiles.length < 2"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
-              </svg>
-              <span>Unir</span>
-            </button>
-
-            <button
-              class="tool-btn danger"
-              (click)="deletePages()"
-              [disabled]="processing || !selectedFile.uploaded"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-              <span>Eliminar</span>
-            </button>
-          </div>
-
-          <!-- Información de opciones -->
-          <div class="info-box">
-            <h4>Opciones disponibles:</h4>
-            <ul>
-              <li><strong>Rotar:</strong> Gira el PDF 90° en sentido horario</li>
-              <li><strong>Dividir:</strong> Separa el PDF en múltiples archivos por páginas</li>
-              <li><strong>Unir:</strong> Combina múltiples PDFs en uno solo</li>
-              <li><strong>Eliminar:</strong> Quita páginas específicas del documento</li>
-            </ul>
-            <p class="info-note">* Las opciones requieren que el archivo esté subido</p>
-          </div>
-        </div>
-
-        <ng-template #noSelection>
-          <div class="no-selection">
-            <svg class="no-selection-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-            </svg>
-            <p>Selecciona un archivo para ver la vista previa y opciones de edición</p>
-          </div>
-        </ng-template>
-      </div>
+      <input #fileInput 
+             type="file" 
+             accept="application/pdf" 
+             (change)="onFileSelected($event)" 
+             hidden />
     </div>
+
+    <div class="supported-formats">
+      <span class="format-label">Formato soportado:</span>
+      <span class="format-badge">PDF</span>
+      <span class="format-info">Tamaño máximo: 10 MB</span>
+    </div>
+  </div>
+
+  <div class="alert error" *ngIf="errorMessage">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    {{ errorMessage }}
   </div>
 </div>
