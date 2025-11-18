@@ -48,7 +48,7 @@ export class UploadComponent {
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
 
-    this.http.post<any>(`${environment.apiUrl}/pdf-file/subir`, formData, { headers})
+    this.http.post<any>(`${environment.apiUrl}/pdf-file/Subir`, formData, { headers})
       .subscribe({
         next: (response) => {
           this.fileUploaded.emit(response);

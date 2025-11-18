@@ -85,7 +85,7 @@ export class ConvertidorComponent {
           'Authorization': `Bearer ${sessionStorage.getItem('token')}`
         });
 
-        this.http.post(`${environment.apiUrl2}/herramientas/convertir`, formData, { headers, responseType: 'blob' },)
+        this.http.post(`${environment.apiUrl2}/convertir/convertir`, formData, { headers, responseType: 'blob' },)
           .subscribe({
             next: (response: Blob) => {
               clearInterval(progressInterval);
