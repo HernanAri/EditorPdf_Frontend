@@ -22,6 +22,14 @@ export const routes: Routes = [
                 .then(m => m.UploadComponent),
             canActivate: [UserGuard]
           },
+          {
+            path: 'workflow',
+            loadComponent: () =>
+                import('../pages/pdf/pdf-workflow/pdf-workflow.component')
+                .then(m => m.PdfWorkflowComponent),
+            canActivate: [UserGuard]
+            },
+
          /* {
             path: 'editor/:id',
             loadComponent: () =>
