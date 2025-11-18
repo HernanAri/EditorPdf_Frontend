@@ -105,7 +105,7 @@ export class UploadComponent {
     });
 
     this.http.post<any>(
-      `${environment.apiUrl}/pdf-file/subir`, 
+      `${environment.apiUrl}/pdf-file/Subir`, 
       formData, 
       { 
         headers,
