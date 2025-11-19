@@ -31,7 +31,7 @@ export class UploadComponent {
     const input = event.target as HTMLInputElement;
     if (input.files?.length) {
       const file = input.files[0];
-      
+
       // Validar tamaño (10MB máximo)
       const maxSize = 10 * 1024 * 1024; // 10MB en bytes
       if (file.size > maxSize) {
@@ -65,11 +65,11 @@ export class UploadComponent {
   onDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const files = event.dataTransfer?.files;
     if (files?.length) {
       const file = files[0];
-      
+
       // Validar tamaño
       const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
@@ -96,7 +96,7 @@ export class UploadComponent {
     this.uploading = true;
     this.errorMessage = '';
     this.uploadProgress = 0;
-    
+
     const formData = new FormData();
     formData.append('file', this.selectedFile);
 
@@ -105,9 +105,9 @@ export class UploadComponent {
     });
 
     this.http.post<any>(
-      `${environment.apiUrl}/pdf-file/Subir`, 
-      formData, 
-      { 
+      `${environment.apiUrl}/pdf-file/Subir`,
+      formData,
+      {
         headers,
         reportProgress: true,
         observe: 'events'
@@ -116,8 +116,8 @@ export class UploadComponent {
       next: (event: HttpEvent<any>) => {
         if (event.type === HttpEventType.UploadProgress) {
           // Calcular progreso
-          const progress = event.total 
-            ? Math.round((100 * event.loaded) / event.total) 
+          const progress = event.total
+            ? Math.round((100 * event.loaded) / event.total)
             : 0;
           this.uploadProgress = progress;
         } else if (event.type === HttpEventType.Response) {

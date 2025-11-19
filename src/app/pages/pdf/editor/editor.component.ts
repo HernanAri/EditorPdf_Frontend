@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PdfFile } from '../upload/upload.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-editor',
@@ -12,12 +13,13 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
+export class EditorComponent implements OnChanges {
 
-
-export class EditorComponent {
   @Input() file: PdfFile | null = null;
   @Input() allFiles: PdfFile[] = [];
   @Output() closePreview = new EventEmitter<void>();
+
+  previewUrl: SafeResourceUrl | null = null;
 
   selectedFormat: 'excel' | 'word' | 'power point' | '' = '';
   selectedPages = '';
@@ -27,14 +29,18 @@ export class EditorComponent {
   successMessage = '';
   processing = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (this.file?.tempPath) {
+      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.file.tempPath);
+    }
+  }
 
   clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';
   }
-  
-  
 
   close(): void {
     this.closePreview.emit();
@@ -74,29 +80,32 @@ export class EditorComponent {
         formData.append('file', fileBlob);
         formData.append('tipo', this.selectedFormat);
 
-        this.http.post(`${environment.apiUrl}/herramientas/convertir`, formData, { responseType: 'blob' })
-          .subscribe({
-            next: (response: Blob) => {
-              const url = window.URL.createObjectURL(response);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `convertido.${this.getExtension(this.selectedFormat)}`;
-              link.click();
-              window.URL.revokeObjectURL(url);
+        this.http.post(`${environment.apiUrl}/herramientas/convertir`,
+          formData,
+          { responseType: 'blob' }
+        )
+        .subscribe({
+          next: (response: Blob) => {
+            const url = window.URL.createObjectURL(response);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `convertido.${this.getExtension(this.selectedFormat)}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
 
-              this.successMessage = '✅ Conversión exitosa';
-              this.processing = false;
-            },
-            error: () => {
-              this.errorMessage = '❌ Error en la conversión';
-              this.processing = false;
-            }
-          });
+            this.successMessage = '✅ Conversión exitosa';
+            this.processing = false;
+          },
+          error: () => {
+            this.errorMessage = '❌ Error en la conversión';
+            this.processing = false;
+          }
+        });
       });
   }
 
   rotateFile(degrees: number): void {
-    this.rotationPage = 1; // Puedes ajustar esto según tu lógica
+    this.rotationPage = 1;
     this.girarPagina();
   }
 
@@ -113,7 +122,6 @@ export class EditorComponent {
   }
 
   extractPages(): void {
-    // Simulación temporal
     this.successMessage = '✅ Páginas extraídas (simulado)';
   }
 
@@ -127,16 +135,16 @@ export class EditorComponent {
     this.clearMessages();
 
     this.http.post(`${environment.apiUrl}/pdf-editor/unir`, { fileId: this.file.id })
-      .subscribe({
-        next: () => {
-          this.successMessage = '✅ PDFs unidos correctamente';
-          this.processing = false;
-        },
-        error: () => {
-          this.errorMessage = '❌ Error al unir los PDFs';
-          this.processing = false;
-        }
-      });
+    .subscribe({
+      next: () => {
+        this.successMessage = '✅ PDFs unidos correctamente';
+        this.processing = false;
+      },
+      error: () => {
+        this.errorMessage = '❌ Error al unir los PDFs';
+        this.processing = false;
+      }
+    });
   }
 
   dividirPDF(): void {
@@ -147,7 +155,8 @@ export class EditorComponent {
     this.http.post(`${environment.apiUrl}/pdf-editor/dividir`, {
       fileId: this.file.id,
       paginas: this.selectedPages
-    }).subscribe({
+    })
+    .subscribe({
       next: () => {
         this.successMessage = '✅ PDF dividido correctamente';
         this.processing = false;
@@ -167,7 +176,8 @@ export class EditorComponent {
     this.http.post(`${environment.apiUrl}/pdf-editor/girar`, {
       fileId: this.file.id,
       pagina: this.rotationPage
-    }).subscribe({
+    })
+    .subscribe({
       next: () => {
         this.successMessage = '✅ Página girada correctamente';
         this.processing = false;
@@ -187,13 +197,14 @@ export class EditorComponent {
     this.http.post(`${environment.apiUrl}/pdf-editor/eliminar`, {
       fileId: this.file.id,
       paginas: this.selectedPages
-    }).subscribe({
+    })
+    .subscribe({
       next: () => {
         this.successMessage = '✅ Páginas eliminadas correctamente';
         this.processing = false;
       },
       error: () => {
-        this.errorMessage = '❌ Error al eliminar las páginas';
+        this.errorMessage = '❌ Error al eliminar páginas';
         this.processing = false;
       }
     });
@@ -207,7 +218,8 @@ export class EditorComponent {
     this.http.post(`${environment.apiUrl}/pdf-editor/reorganizar`, {
       fileId: this.file.id,
       nuevoOrden: this.newOrder
-    }).subscribe({
+    })
+    .subscribe({
       next: () => {
         this.successMessage = '✅ Páginas reorganizadas correctamente';
         this.processing = false;

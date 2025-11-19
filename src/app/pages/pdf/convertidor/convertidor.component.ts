@@ -52,12 +52,19 @@ export class ConvertidorComponent {
   }
 
   convertFile() {
-    console.log('Temp path:', this.file?.tempPath);
+    console.log('Archivo recibido:', this.file);
     console.log('Formato seleccionado:', this.selectedFormat);
-    console.log('Ejecutando conversión...');
 
-    if (!this.file || !this.selectedFormat || !this.file.tempPath) {
-      this.errorMessage = 'Archivo o formato no válido';
+    if (!this.file || !this.selectedFormat) {
+      this.errorMessage = 'Archivo o formato no válido.';
+      return;
+    }
+
+    // Verificar que el workflow envió el File real
+    const realFile = (this.file as any).file;
+    if (!realFile) {
+      this.errorMessage = '❌ No se recibió el archivo original para convertir.';
+      console.error("ERROR: faltó enviar el archivo real desde el workflow.");
       return;
     }
 
@@ -73,76 +80,67 @@ export class ConvertidorComponent {
     }, 300);
 
     const formData = new FormData();
+    formData.append('file', realFile); // PDF real del navegador
+    formData.append('tipo', this.selectedFormat!);
 
-    fetch(this.file.tempPath)
-      .then(res => res.blob())
-      .then(blob => {
-        const fileBlob = new File([blob], this.file!.name, { type: 'application/pdf' });
-        formData.append('file', fileBlob);
-        formData.append('tipo', this.selectedFormat!);
-
-        const headers = new HttpHeaders({
-          'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-        });
-
-        this.http.post(`${environment.apiUrl2}/convertir/convertir`, formData, { headers, responseType: 'blob' },)
-          .subscribe({
-            next: (response: Blob) => {
-              clearInterval(progressInterval);
-              this.conversionProgress = 100;
-
-              setTimeout(() => {
-                const url = window.URL.createObjectURL(response);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${this.getFileNameWithoutExt()}.${this.getExtension(this.selectedFormat!)}`;
-                link.click();
-                window.URL.revokeObjectURL(url);
-
-                this.successMessage = '¡Conversión completada!';
-                this.processing = false;
-                this.conversionProgress = 0;
-
-                // Auto-limpiar mensaje después de 5 segundos
-                setTimeout(() => {
-                this.successMessage = '';
-              }, 5000);
-            }, 500);
-          },
-          error: (err) => {
-            clearInterval(progressInterval);
-            console.error('Error en la conversión:', err);
-            this.errorMessage = '❌ Error al convertir el archivo';
-            this.processing = false;
-            this.conversionProgress = 0;
-          }
-        });
-    })
-    .catch(err => {
-      clearInterval(progressInterval);
-      console.error('Error al obtener el archivo:', err);
-      this.errorMessage = '❌ No se pudo acceder al archivo temporal';
-      this.processing = false;
-      this.conversionProgress = 0;
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
-}
-getExtension(format: ConversionFormat): string {
-  const map = {
-    'excel': 'xlsx',
-    'word': 'docx',
-    'power point': 'pptx'
-  };
-  return map[format] || 'pdf';
-}
 
-getFileNameWithoutExt(): string {
-  if (!this.file?.name) return 'archivo_convertido';
-  return this.file.name.replace(/\.[^/.]+$/, '');
-}
+    this.http.post(`${environment.apiUrl2}/convertir/convertir`, formData, {
+      headers,
+      responseType: 'blob'
+    }).subscribe({
+      next: (response: Blob) => {
+        clearInterval(progressInterval);
+        this.conversionProgress = 100;
 
-ngOnChanges() {
-  if (!this.file?.tempPath) {
-    this.errorMessage = '⚠️ No se recibió archivo válido para convertir';
+        setTimeout(() => {
+          const url = window.URL.createObjectURL(response);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${this.getFileNameWithoutExt()}.${this.getExtension(this.selectedFormat!)}`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+
+          this.successMessage = '¡Conversión completada!';
+          this.processing = false;
+          this.conversionProgress = 0;
+
+          // Limpia el mensaje después de 5 segundos
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 5000);
+        }, 500);
+      },
+
+      error: (err) => {
+        clearInterval(progressInterval);
+        console.error('Error en la conversión:', err);
+        this.errorMessage = '❌ Error al convertir el archivo.';
+        this.processing = false;
+        this.conversionProgress = 0;
+      }
+    });
   }
-}
+
+  getExtension(format: ConversionFormat): string {
+    const map = {
+      'excel': 'xlsx',
+      'word': 'docx',
+      'power point': 'pptx'
+    };
+    return map[format] || 'pdf';
+  }
+
+  getFileNameWithoutExt(): string {
+    if (!this.file?.name) return 'archivo_convertido';
+    return this.file.name.replace(/\.[^/.]+$/, '');
+  }
+
+  ngOnChanges() {
+    if (!this.file) {
+      this.errorMessage = '⚠️ No se recibió archivo válido para convertir.';
+    }
+  }
 }
