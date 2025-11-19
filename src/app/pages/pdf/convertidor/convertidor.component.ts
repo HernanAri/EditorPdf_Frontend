@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { PdfFile } from '../upload/upload.component';
@@ -14,8 +14,10 @@ type ConversionFormat = 'excel' | 'word' | 'power point';
   styleUrls: ['./convertidor.component.scss'],
   imports: [FormsModule, CommonModule]
 })
-export class ConvertidorComponent {
+export class ConvertidorComponent implements OnChanges {
+
   @Input() file: PdfFile | null = null;
+
   selectedFormat: ConversionFormat | null = null;
   processing = false;
   successMessage = '';
@@ -23,6 +25,19 @@ export class ConvertidorComponent {
   conversionProgress = 0;
 
   constructor(private http: HttpClient) {}
+
+  ngOnChanges() {
+    if (!this.file) {
+      this.errorMessage = '⚠️ No se recibió archivo válido para convertir.';
+      return;
+    }
+
+    console.log("📄 Archivo recibido en convertidor:", this.file);
+
+    if (!(this.file as any).file) {
+      console.warn("⚠️ Advertencia: el archivo recibido NO contiene el File real.");
+    }
+  }
 
   selectFormat(format: ConversionFormat) {
     if (!this.processing) {
@@ -52,19 +67,19 @@ export class ConvertidorComponent {
   }
 
   convertFile() {
-    console.log('Archivo recibido:', this.file);
-    console.log('Formato seleccionado:', this.selectedFormat);
+    console.log("✔ Archivo recibido para convertir:", this.file);
+    console.log("✔ Formato seleccionado:", this.selectedFormat);
 
     if (!this.file || !this.selectedFormat) {
-      this.errorMessage = 'Archivo o formato no válido.';
+      this.errorMessage = '⚠️ Archivo o formato no válido.';
       return;
     }
 
-    // Verificar que el workflow envió el File real
-    const realFile = (this.file as any).file;
+    const realFile: File | undefined = (this.file as any).file;
+
     if (!realFile) {
       this.errorMessage = '❌ No se recibió el archivo original para convertir.';
-      console.error("ERROR: faltó enviar el archivo real desde el workflow.");
+      console.error("❌ ERROR: faltó enviar el File real desde el workflow.");
       return;
     }
 
@@ -72,16 +87,16 @@ export class ConvertidorComponent {
     this.conversionProgress = 0;
     this.clearMessages();
 
-    // Simular progreso
+    // Simulación de progreso mientras el backend procesa
     const progressInterval = setInterval(() => {
       if (this.conversionProgress < 90) {
-        this.conversionProgress += Math.random() * 15;
+        this.conversionProgress += Math.random() * 20;
       }
     }, 300);
 
     const formData = new FormData();
-    formData.append('file', realFile); // PDF real del navegador
-    formData.append('tipo', this.selectedFormat!);
+    formData.append('file', realFile);
+    formData.append('tipo', this.selectedFormat);
 
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
@@ -103,11 +118,10 @@ export class ConvertidorComponent {
           link.click();
           window.URL.revokeObjectURL(url);
 
-          this.successMessage = '¡Conversión completada!';
+          this.successMessage = '¡Conversión completada! 🎉';
           this.processing = false;
           this.conversionProgress = 0;
 
-          // Limpia el mensaje después de 5 segundos
           setTimeout(() => {
             this.successMessage = '';
           }, 5000);
@@ -116,7 +130,7 @@ export class ConvertidorComponent {
 
       error: (err) => {
         clearInterval(progressInterval);
-        console.error('Error en la conversión:', err);
+        console.error('❌ Error en la conversión:', err);
         this.errorMessage = '❌ Error al convertir el archivo.';
         this.processing = false;
         this.conversionProgress = 0;
@@ -136,11 +150,5 @@ export class ConvertidorComponent {
   getFileNameWithoutExt(): string {
     if (!this.file?.name) return 'archivo_convertido';
     return this.file.name.replace(/\.[^/.]+$/, '');
-  }
-
-  ngOnChanges() {
-    if (!this.file) {
-      this.errorMessage = '⚠️ No se recibió archivo válido para convertir.';
-    }
   }
 }

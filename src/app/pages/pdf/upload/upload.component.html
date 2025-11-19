@@ -1,66 +1,80 @@
 <div class="upload-container">
   <div class="upload-wrapper">
+
+    <!-- Caja de carga -->
     <div class="upload-box"
          (click)="fileInput.click()"
-         [class.has-file]="selectedFile"
          [class.uploading]="uploading">
 
       <div class="upload-icon-wrapper">
-        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
         <div class="upload-pulse" *ngIf="uploading"></div>
       </div>
 
-      <h3>{{ uploading ? 'Subiendo archivo...' : 'Sube tu archivo PDF' }}</h3>
-      <p *ngIf="!selectedFile">Arrastra y suelta tu archivo aquí o haz clic para seleccionar</p>
-      <div class="file-info" *ngIf="selectedFile && !uploading">
-        <div class="file-icon">📄</div>
-        <div class="file-details">
-          <span class="file-name">{{ selectedFile.name }}</span>
-          <span class="file-size">{{ selectedFile.size }}</span>
+      <h3>{{ uploading ? 'Subiendo archivos...' : 'Sube tus archivos PDF' }}</h3>
+      <p *ngIf="selectedFiles.length === 0">Arrastra o haz clic para seleccionar varios PDFs</p>
+
+      <!-- Lista de archivos seleccionados -->
+      <div class="multiple-files" *ngIf="selectedFiles.length > 0 && !uploading">
+        <div class="file-row" *ngFor="let file of selectedFiles; let i = index">
+          <div class="file-icon">📄</div>
+          <div class="file-details">
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ file.size | number }} bytes</span>
+          </div>
+
+          <button class="remove-file-btn"
+                  (click)="removeFile(i); $event.stopPropagation()">
+            ✖
+          </button>
         </div>
       </div>
 
+      <!-- Progreso -->
       <div class="progress-bar" *ngIf="uploading">
-        <div class="progress-fill"></div>
+        <div class="progress-fill" [style.width.%]="uploadProgress"></div>
       </div>
 
-      <button class="upload-btn" [disabled]="uploading" *ngIf="!selectedFile" >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        Seleccionar archivo
+      <!-- Botón para seleccionar más archivos -->
+      <button class="upload-btn" [disabled]="uploading" *ngIf="selectedFiles.length === 0">
+        Seleccionar archivos
       </button>
 
-      <div class="action-buttons" *ngIf="selectedFile && !uploading">
-        <button class="confirm-btn" (click)="uploadFile(); $event.stopPropagation()" >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Subir PDF
+      <!-- Botón de subir todo -->
+      <div class="action-buttons" *ngIf="selectedFiles.length > 0 && !uploading">
+        <button class="confirm-btn" (click)="uploadFile(); $event.stopPropagation()">
+          Subir {{ selectedFiles.length }} PDF(s)
+        </button>
+
+        <button class="clear-btn" (click)="clearFile(); $event.stopPropagation()">
+          Limpiar
         </button>
       </div>
 
       <input #fileInput
              type="file"
              accept="application/pdf"
+             multiple
              (change)="onFileSelected($event)"
-             hidden />
+             hidden>
     </div>
 
     <div class="supported-formats">
-      <span class="format-label">Formato soportado:</span>
+      <span class="format-label">Formatos soportados:</span>
       <span class="format-badge">PDF</span>
-      <span class="format-info">Tamaño máximo: 10 MB</span>
+      <span class="format-info">Tamaño máximo por archivo: 10 MB</span>
     </div>
   </div>
 
+  <!-- Error -->
   <div class="alert error" *ngIf="errorMessage">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     {{ errorMessage }}
   </div>
