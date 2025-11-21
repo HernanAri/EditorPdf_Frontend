@@ -20,19 +20,25 @@ import { CommonModule } from '@angular/common';
 })
 export class PdfWorkflowComponent {
 
-  // Ahora es un ARRAY porque tu upload es múltiple
   uploadedFiles: PdfFile[] = [];
+  archivosSeleccionados: PdfFile | null = null;
 
   // Recibe una lista de archivos desde upload
   onFilesUploaded(files: PdfFile[]) {
     console.log("📥 Archivos recibidos del UploadComponent:", files);
 
     this.uploadedFiles = files;
-
+    this.archivosSeleccionados = files.length > 0 ? files[0] : null;
+    
     // Validación
     files.forEach(f => {
       if (!f.file) {
         console.error("❌ Falta el File real en:", f.name);
       }
-    })
+    });
+  }
+
+  selectFile(file: PdfFile) {
+    this.archivosSeleccionados = file;
+  }
 }

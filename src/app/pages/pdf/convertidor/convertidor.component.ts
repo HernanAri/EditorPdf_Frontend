@@ -17,6 +17,7 @@ type ConversionFormat = 'excel' | 'word' | 'power point';
 export class ConvertidorComponent implements OnChanges {
 
   @Input() file: PdfFile | null = null;
+  @Input() allFiles: PdfFile[] = [];
 
   selectedFormat: ConversionFormat | null = null;
   processing = false;
@@ -67,76 +68,77 @@ export class ConvertidorComponent implements OnChanges {
   }
 
   convertFile() {
-    console.log("✔ Archivo recibido para convertir:", this.file);
-    console.log("✔ Formato seleccionado:", this.selectedFormat);
+  console.log("✔ Archivo recibido para convertir:", this.file);
+  console.log("✔ Formato seleccionado:", this.selectedFormat);
 
-    if (!this.file || !this.selectedFormat) {
-      this.errorMessage = '⚠️ Archivo o formato no válido.';
-      return;
+  if (!this.file || !this.selectedFormat) {
+    this.errorMessage = '⚠️ Archivo o formato no válido.';
+    return;
+  }
+
+  // Ya no necesitas el File real, solo el ID
+  if (!this.file.id) {
+    this.errorMessage = '❌ No se encontró el ID del archivo.';
+    return;
+  }
+
+  this.processing = true;
+  this.conversionProgress = 0;
+  this.clearMessages();
+
+  const progressInterval = setInterval(() => {
+    if (this.conversionProgress < 90) {
+      this.conversionProgress += Math.random() * 20;
     }
+  }, 300);
 
-    const realFile: File | undefined = (this.file as any).file;
+  // Enviar el ID del archivo en lugar del File
+  const body = {
+    file_id: this.file.id,  // ID del archivo en memoria
+    tipo: this.selectedFormat
+  };
 
-    if (!realFile) {
-      this.errorMessage = '❌ No se recibió el archivo original para convertir.';
-      console.error("❌ ERROR: faltó enviar el File real desde el workflow.");
-      return;
-    }
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  });
 
-    this.processing = true;
-    this.conversionProgress = 0;
-    this.clearMessages();
+  this.http.post(
+    `${environment.apiUrl2}/convertir/convertir`, 
+    body,  // JSON en lugar de FormData
+    { headers, responseType: 'blob' }
+  ).subscribe({
+    next: (response: Blob) => {
+      clearInterval(progressInterval);
+      this.conversionProgress = 100;
 
-    // Simulación de progreso mientras el backend procesa
-    const progressInterval = setInterval(() => {
-      if (this.conversionProgress < 90) {
-        this.conversionProgress += Math.random() * 20;
-      }
-    }, 300);
+      setTimeout(() => {
+        const url = window.URL.createObjectURL(response);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${this.getFileNameWithoutExt()}.${this.getExtension(this.selectedFormat!)}`;
+        link.click();
+        window.URL.revokeObjectURL(url);
 
-    const formData = new FormData();
-    formData.append('file', realFile);
-    formData.append('tipo', this.selectedFormat);
-
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-    });
-
-    this.http.post(`${environment.apiUrl2}/convertir/convertir`, formData, {
-      headers,
-      responseType: 'blob'
-    }).subscribe({
-      next: (response: Blob) => {
-        clearInterval(progressInterval);
-        this.conversionProgress = 100;
-
-        setTimeout(() => {
-          const url = window.URL.createObjectURL(response);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${this.getFileNameWithoutExt()}.${this.getExtension(this.selectedFormat!)}`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-
-          this.successMessage = '¡Conversión completada! 🎉';
-          this.processing = false;
-          this.conversionProgress = 0;
-
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 5000);
-        }, 500);
-      },
-
-      error: (err) => {
-        clearInterval(progressInterval);
-        console.error('❌ Error en la conversión:', err);
-        this.errorMessage = '❌ Error al convertir el archivo.';
+        this.successMessage = '¡Conversión completada! 🎉';
         this.processing = false;
         this.conversionProgress = 0;
-      }
-    });
-  }
+
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 5000);
+      }, 500);
+    },
+
+    error: (err) => {
+      clearInterval(progressInterval);
+      console.error('❌ Error en la conversión:', err);
+      this.errorMessage = '❌ Error al convertir el archivo.';
+      this.processing = false;
+      this.conversionProgress = 0;
+    }
+  });
+}
 
   getExtension(format: ConversionFormat): string {
     const map = {

@@ -1,17 +1,50 @@
 <div class="editor-container">
-  <div class="editor-header">
 
+  <div class="editor-header">
     <p>Selecciona una acción para modificar tu PDF</p>
   </div>
 
-    <div class="pdf-preview-container" *ngIf="previewUrl">
-      <iframe class="pdf-preview-frame" [src]="previewUrl"></iframe>
+  <!-- === GRID: LATERAL IZQUIERDO + PREVIEW === -->
+  <div class="preview-container">
+
+    <!-- PANEL IZQUIERDO – LISTA DE ARCHIVOS -->
+    <div class="file-list">
+      <h3>Archivos cargados</h3>
+
+      <ul>
+        <li
+          *ngFor="let f of allFiles; let i = index"
+          [class.active]="i === selectedFileIndex"
+          (click)="changePreview(f, i)"
+        >
+          📄 {{ f.name }}
+        </li>
+      </ul>
+
     </div>
 
+    <!-- PANEL DERECHO – PREVIEW DEL PDF -->
+    <div class="preview-area">
+
+      <h3 *ngIf="file">Vista previa: {{ file.name }}</h3>
+
+      <iframe
+        *ngIf="previewUrl"
+        [src]="previewUrl"
+        class="preview-frame">
+      </iframe>
+
+      <p *ngIf="!previewUrl">Selecciona un archivo para ver la vista previa.</p>
+
+    </div>
+
+  </div>
+  <hr>
+
+  <!-- === TARJETAS DE HERRAMIENTAS === -->
   <div class="editor-tools-grid">
 
-  <div class="editor-tools-grid">
-    <div class="tool-card" (click)="!processing && unirPDFs()">
+    <div class="tool-card" (click)="!processing && mergeFiles()">
       <div class="tool-icon merge">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -25,7 +58,7 @@
       <div class="tool-badge">Combinar</div>
     </div>
 
-    <div class="tool-card" (click)="!processing && dividirPDF()">
+    <div class="tool-card" (click)="!processing && splitFile()">
       <div class="tool-icon split">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -39,7 +72,7 @@
       <div class="tool-badge">Separar</div>
     </div>
 
-    <div class="tool-card" (click)="!processing && girarPagina()">
+    <div class="tool-card" (click)="!processing && rotateFile(90)">
       <div class="tool-icon rotate">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -53,7 +86,7 @@
       <div class="tool-badge">Girar</div>
     </div>
 
-    <div class="tool-card danger" (click)="!processing && eliminarPaginas()">
+    <div class="tool-card danger" (click)="!processing && deletePages()">
       <div class="tool-icon delete">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -67,7 +100,7 @@
       <div class="tool-badge danger">Eliminar</div>
     </div>
 
-    <div class="tool-card" (click)="!processing && reorganizarPaginas()">
+    <div class="tool-card" (click)="!processing && reorderPages()">
       <div class="tool-icon reorder">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -94,8 +127,10 @@
       </div>
       <div class="tool-badge">Extraer</div>
     </div>
+
   </div>
 
+  <!-- OVERLAYS -->
   <div class="processing-overlay" *ngIf="processing">
     <div class="spinner"></div>
     <p>Procesando...</p>
@@ -115,4 +150,5 @@
     </svg>
     {{ errorMessage }}
   </div>
+
 </div>

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PdfFile } from '../upload/upload.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,20 +20,64 @@ export class EditorComponent implements OnChanges {
   @Output() closePreview = new EventEmitter<void>();
 
   previewUrl: SafeResourceUrl | null = null;
-
-  selectedFormat: 'excel' | 'word' | 'power point' | '' = '';
+  currentBlobUrl: string | null = null;
+  selectedFileIndex = 0;
   selectedPages = '';
   newOrder = '';
   rotationPage: number | null = null;
   errorMessage = '';
   successMessage = '';
   processing = false;
+  loadingPreview = false;
 
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+  constructor(
+    private http: HttpClient, 
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.file?.tempPath) {
-      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.file.tempPath);
+  if (this.file?.id) {
+    this.loadPdfPreview(this.file.id);
+  }
+}
+
+private loadPdfPreview(fileId: string): void {
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+  });
+
+  this.http.get(
+    `${environment.apiUrl}/pdf-file/preview/${fileId}`,
+    { headers, responseType: 'blob' }
+  ).subscribe({
+    next: (blob: Blob) => {
+      // Crear una URL local del blob
+      const url = URL.createObjectURL(blob);
+      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      console.log('✅ Preview cargado correctamente');
+    },
+    error: (err) => {
+      console.error('❌ Error al cargar preview:', err);
+      this.errorMessage = '❌ No se pudo cargar la vista previa';
+    }
+  });
+}
+
+// No olvides limpiar la URL cuando el componente se destruya
+ngOnDestroy() {
+  if (this.previewUrl) {
+    const url = (this.previewUrl as any).changingThisBreaksApplicationSecurity;
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+  }
+}
+
+  changePreview(file: PdfFile, index: number): void {
+    this.file = file;
+    this.selectedFileIndex = index;
+    if (file.id) {
+      this.loadPdfPreview(file.id);
     }
   }
 
@@ -47,61 +91,28 @@ export class EditorComponent implements OnChanges {
   }
 
   downloadFile(): void {
-    if (!this.file?.tempPath) return;
-    const link = document.createElement('a');
-    link.href = this.file.tempPath;
-    link.download = this.file.name;
-    link.click();
-  }
+    if (!this.file?.id) return;
+    
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+    });
 
-  getExtension(format: string): string {
-    const map = {
-      excel: 'xlsx',
-      word: 'docx',
-      'power point': 'pptx'
-    };
-    return map[format] || 'pdf';
-  }
-
-  convertFile(): void {
-    if (!this.file?.tempPath || !this.selectedFormat) {
-      this.errorMessage = '⚠️ Archivo o formato no válido';
-      return;
-    }
-
-    this.processing = true;
-    this.clearMessages();
-
-    fetch(this.file.tempPath)
-      .then(res => res.blob())
-      .then(blob => {
-        const fileBlob = new File([blob], this.file!.name, { type: 'application/pdf' });
-        const formData = new FormData();
-        formData.append('file', fileBlob);
-        formData.append('tipo', this.selectedFormat);
-
-        this.http.post(`${environment.apiUrl}/herramientas/convertir`,
-          formData,
-          { responseType: 'blob' }
-        )
-        .subscribe({
-          next: (response: Blob) => {
-            const url = window.URL.createObjectURL(response);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `convertido.${this.getExtension(this.selectedFormat)}`;
-            link.click();
-            window.URL.revokeObjectURL(url);
-
-            this.successMessage = '✅ Conversión exitosa';
-            this.processing = false;
-          },
-          error: () => {
-            this.errorMessage = '❌ Error en la conversión';
-            this.processing = false;
-          }
-        });
-      });
+    this.http.get(
+      `${environment.apiUrl}/pdf-file/obtener/${this.file.id}`,
+      { headers, responseType: 'blob' }
+    ).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.file?.name || 'archivo.pdf';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.errorMessage = '❌ Error al descargar el archivo';
+      }
+    });
   }
 
   rotateFile(degrees: number): void {
@@ -130,33 +141,65 @@ export class EditorComponent implements OnChanges {
   }
 
   unirPDFs(): void {
-    if (!this.file?.id) return;
-    this.processing = true;
-    this.clearMessages();
-
-    this.http.post(`${environment.apiUrl}/pdf-editor/unir`, { fileId: this.file.id })
-    .subscribe({
-      next: () => {
-        this.successMessage = '✅ PDFs unidos correctamente';
-        this.processing = false;
-      },
-      error: () => {
-        this.errorMessage = '❌ Error al unir los PDFs';
-        this.processing = false;
-      }
-    });
+  if (!this.allFiles.length || this.allFiles.length < 2) {
+    this.errorMessage = '⚠️ Se necesitan al menos 2 archivos para unir';
+    return;
   }
+
+  this.processing = true;
+  this.clearMessages();
+
+  const fileIds = this.allFiles.map(f => f.id);
+  
+  console.log('📤 Enviando IDs para unir:', fileIds);
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  });
+
+  this.http.post(
+    `${environment.apiUrl3}/unir`,
+    { archivos: fileIds },  // ← CAMBIAR "files" por "archivos"
+    { headers, responseType: 'blob' }
+  ).subscribe({
+    next: (blob: Blob) => {
+      console.log('✅ PDF unido recibido, descargando...');
+      
+      // Descargar el PDF unido
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'pdf_unido.pdf';
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      this.successMessage = '✅ PDFs unidos y descargados correctamente';
+      this.processing = false;
+    },
+    error: (err) => {
+      console.error('❌ Error al unir PDFs:', err);
+      this.errorMessage = err.error?.detail || '❌ Error al unir los PDFs';
+      this.processing = false;
+    }
+  });
+}
 
   dividirPDF(): void {
     if (!this.file?.id || !this.selectedPages) return;
+
     this.processing = true;
     this.clearMessages();
 
-    this.http.post(`${environment.apiUrl}/pdf-editor/dividir`, {
-      fileId: this.file.id,
-      paginas: this.selectedPages
-    })
-    .subscribe({
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+    });
+
+    this.http.post(
+      `${environment.apiUrl}/pdf-editor/dividir`,
+      { fileId: this.file.id, paginas: this.selectedPages },
+      { headers , responseType: 'blob' }
+    ).subscribe({
       next: () => {
         this.successMessage = '✅ PDF dividido correctamente';
         this.processing = false;
@@ -170,14 +213,19 @@ export class EditorComponent implements OnChanges {
 
   girarPagina(): void {
     if (!this.file?.id || !this.rotationPage) return;
+
     this.processing = true;
     this.clearMessages();
 
-    this.http.post(`${environment.apiUrl}/pdf-editor/girar`, {
-      fileId: this.file.id,
-      pagina: this.rotationPage
-    })
-    .subscribe({
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+    });
+
+    this.http.post(
+      `${environment.apiUrl}/pdf-editor/girar`,
+      { fileId: this.file.id, pagina: this.rotationPage },
+      { headers }
+    ).subscribe({
       next: () => {
         this.successMessage = '✅ Página girada correctamente';
         this.processing = false;
@@ -191,14 +239,19 @@ export class EditorComponent implements OnChanges {
 
   eliminarPaginas(): void {
     if (!this.file?.id || !this.selectedPages) return;
+
     this.processing = true;
     this.clearMessages();
 
-    this.http.post(`${environment.apiUrl}/pdf-editor/eliminar`, {
-      fileId: this.file.id,
-      paginas: this.selectedPages
-    })
-    .subscribe({
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+    });
+
+    this.http.post(
+      `${environment.apiUrl}/pdf-editor/eliminar`,
+      { fileId: this.file.id, paginas: this.selectedPages },
+      { headers }
+    ).subscribe({
       next: () => {
         this.successMessage = '✅ Páginas eliminadas correctamente';
         this.processing = false;
@@ -212,14 +265,19 @@ export class EditorComponent implements OnChanges {
 
   reorganizarPaginas(): void {
     if (!this.file?.id || !this.newOrder) return;
+
     this.processing = true;
     this.clearMessages();
 
-    this.http.post(`${environment.apiUrl}/pdf-editor/reorganizar`, {
-      fileId: this.file.id,
-      nuevoOrden: this.newOrder
-    })
-    .subscribe({
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+    });
+
+    this.http.post(
+      `${environment.apiUrl}/pdf-editor/reorganizar`,
+      { fileId: this.file.id, nuevoOrden: this.newOrder },
+      { headers }
+    ).subscribe({
       next: () => {
         this.successMessage = '✅ Páginas reorganizadas correctamente';
         this.processing = false;

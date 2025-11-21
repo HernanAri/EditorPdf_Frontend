@@ -1,13 +1,17 @@
 <app-upload (fileUploaded)="onFilesUploaded($event)"></app-upload>
 
-<div class="files-container" *ngIf="uploadedFiles.length > 0">
+<div *ngIf="uploadedFiles.length > 0">
 
-  <h2>Archivos subidos</h2>
+  <!-- SOLO UN EDITOR -->
+  <app-editor
+      [allFiles]="uploadedFiles"
+      [file]="uploadedFiles[0]">
+  </app-editor>
 
-  <div *ngFor="let file of uploadedFiles" class="file-block">
+  <!-- SOLO UN CONVERTIDOR -->
+  <app-convertidor
+      [allFiles]="uploadedFiles"
+      [file]="uploadedFiles[0]">
+  </app-convertidor>
 
-    <app-editor [file]="file"></app-editor>
-
-    <app-convertidor [file]="file"></app-convertidor>
-
-  </div>
+</div>

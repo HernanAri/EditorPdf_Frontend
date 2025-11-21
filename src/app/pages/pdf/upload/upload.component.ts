@@ -8,7 +8,7 @@ export interface PdfFile {
   name: string;
   pages: number;
   size?: number;
-  tempPath?: string;
+  tempPath: string;
   file: File;
 }
 
@@ -23,7 +23,7 @@ export class UploadComponent {
 
   @Output() fileUploaded = new EventEmitter<PdfFile[]>();
 
-  selectedFiles: File[] = [];
+  selectedFiles: File [] = [];
   uploading = false;
   errorMessage = '';
   uploadProgress = 0;
@@ -65,7 +65,7 @@ export class UploadComponent {
     this.uploading = true;
 
     const formData = new FormData();
-    this.selectedFiles.forEach(f => formData.append('files', f));
+    this.selectedFiles.forEach(f => formData.append('file', f));
 
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
@@ -86,13 +86,20 @@ export class UploadComponent {
         if (event.type === HttpEventType.Response) {
           const uploadedFiles: PdfFile[] = [];
 
+          // ✅ Verificar que la respuesta tenga la estructura esperada
+          if (!event.body?.data?.archivos_guardados) {
+            this.errorMessage = '❌ Respuesta del servidor inválida';
+            this.uploading = false;
+            return;
+          }
+
           event.body.data.archivos_guardados.forEach((saved: any, i: number) => {
             uploadedFiles.push({
-              id: saved.saved_as,
-              name: saved.filename,
+              id: saved.saved_as || '',
+              name: saved.filename || '',
               pages: 0,
-              size: saved.size,
-              tempPath: `${environment.apiUrl}/${saved.path.replace(/\\/g, "/")}`,
+              size: saved.size || 0,
+              tempPath: '', // No se usa porque está en memoria
               file: this.selectedFiles[i]
             });
           });

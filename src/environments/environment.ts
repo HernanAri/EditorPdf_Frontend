@@ -6,5 +6,7 @@ export const environment = {
   apiUrlDominio: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/GetDomainsActiveDirectoryFromJsonAsync',
   apiUrlArquitecturaPuestos: 'https://devapps.emergiacc.com/ApiRestArquitecturaPuestos/api/v1',
   apiUrl: 'http://localhost:8000/api/v1',
-  apiUrl2:'http://localhost:8000'
+  apiUrl2:'http://localhost:8000',
+  apiUrl3:'http://localhost:8000/herramientas/pdf'
+
 };
