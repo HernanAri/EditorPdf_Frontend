@@ -1,25 +1,26 @@
 import { Injectable } from "@angular/core";
 import { CanActivate, Router } from "@angular/router";
-import { UsuarioService } from "../services/usuario.service";
+import { VerificatokenService } from "../services/verifica-token.service";
 
 
 @Injectable({
   providedIn: 'root'
 })
-
-
 export class UserGuard implements CanActivate {
 
   constructor(
-    private _usuarioService: UsuarioService,
-    private _router: Router){}
-  
-  canActivate(): any {
+    private verificaTokenService: VerificatokenService,
+    private router: Router
+  ){ }
 
-    if(!this._usuarioService.isAutenticated()) {
-      this._router.navigate(['/login']);
+  async canActivate(): Promise<boolean> {
+
+    const valido = await this.verificaTokenService.verificarTiempoDeVidaToken();
+
+    if (!valido) {
+      this.router.navigate(['/login']);
       return false;
-    } 
+    }
 
     return true;
   }

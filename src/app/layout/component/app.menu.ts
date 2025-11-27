@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
 
@@ -18,22 +18,40 @@ import { AppMenuitem } from './app.menuitem';
 export class AppMenu {
     model: MenuItem[] = [];
 
+    constructor(private router: Router) {}
+
     ngOnInit() {
         this.model = [
             {
                 label: 'Inicio',
                 items: [
-                    { label: 'Subir PDFs', icon: 'pi pi-fw pi-upload', routerLink: ['/pdf/upload'] }
+                    { 
+                        label: 'Subir PDFs', 
+                        icon: 'pi pi-fw pi-upload', 
+                        routerLink: ['/pdf/workflow'] 
+                    },
+                    {
+                        label: 'Editar PDFs', 
+                        icon: 'pi pi-fw pi-pencil', 
+                        command: () => {
+                            // Navegar al workflow y activar modo editor
+                            this.router.navigate(['/pdf/workflow'], { 
+                                queryParams: { tool: 'editor' } 
+                            });
+                        }
+                    },
+                    { 
+                        label: 'Convertir PDFs', 
+                        icon: 'pi pi-fw pi-sync', 
+                        command: () => {
+                            // Navegar al workflow y activar modo convertidor
+                            this.router.navigate(['/pdf/workflow'], { 
+                                queryParams: { tool: 'convertidor' } 
+                            });
+                        }
+                    }
                 ]
-            },
-            // {
-            //     label: 'Arquitectura',
-            //     items: [
-            //         { label: 'Arquitectura de puestos', icon: 'pi pi-list-check', routerLink: ['/arquitectura-puesto'] },
-            //         { label: 'Homologación de puestos', icon: 'pi pi-arrow-down-left-and-arrow-up-right-to-center', routerLink: ['/homologacion-puesto'] },
-            //         { label: 'Jerarquia de personal', icon: 'pi pi-sitemap', routerLink: ['/jerarquia-personal'] },
-            //     ]
-            // }
+            }
         ];
     }
 }

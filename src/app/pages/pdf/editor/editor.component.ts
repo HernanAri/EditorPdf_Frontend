@@ -132,10 +132,6 @@ ngOnDestroy() {
     this.eliminarPaginas();
   }
 
-  extractPages(): void {
-    this.successMessage = '✅ Páginas extraídas (simulado)';
-  }
-
   reorderPages(): void {
     this.reorganizarPaginas();
   }
@@ -196,7 +192,7 @@ ngOnDestroy() {
     });
 
     this.http.post(
-      `${environment.apiUrl}/pdf-editor/dividir`,
+      `${environment.apiUrl3}/dividir-seleccion`,
       { fileId: this.file.id, paginas: this.selectedPages },
       { headers , responseType: 'blob' }
     ).subscribe({
@@ -222,7 +218,7 @@ ngOnDestroy() {
     });
 
     this.http.post(
-      `${environment.apiUrl}/pdf-editor/girar`,
+      `${environment.apiUrl3}/rotar`,
       { fileId: this.file.id, pagina: this.rotationPage },
       { headers }
     ).subscribe({
@@ -274,7 +270,7 @@ ngOnDestroy() {
     });
 
     this.http.post(
-      `${environment.apiUrl}/pdf-editor/reorganizar`,
+      `${environment.apiUrl3}/reorganizar`,
       { fileId: this.file.id, nuevoOrden: this.newOrder },
       { headers }
     ).subscribe({

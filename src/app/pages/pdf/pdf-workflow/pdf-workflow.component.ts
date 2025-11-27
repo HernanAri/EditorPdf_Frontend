@@ -5,6 +5,8 @@ import { ConvertidorComponent } from '../convertidor/convertidor.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
+type ToolMode = 'none' | 'editor' | 'convertidor';
+
 @Component({
   selector: 'app-pdf-workflow',
   standalone: true,
@@ -21,14 +23,19 @@ import { CommonModule } from '@angular/common';
 export class PdfWorkflowComponent {
 
   uploadedFiles: PdfFile[] = [];
-  archivosSeleccionados: PdfFile | null = null;
+  selectedFile: PdfFile | null = null;
+  currentTool: ToolMode = 'none';
+  selectedFileIndex: number = 0;
 
   // Recibe una lista de archivos desde upload
   onFilesUploaded(files: PdfFile[]) {
     console.log("📥 Archivos recibidos del UploadComponent:", files);
-
     this.uploadedFiles = files;
-    this.archivosSeleccionados = files.length > 0 ? files[0] : null;
+    
+    if (files.length > 0) {
+      this.selectedFile = files[0];
+      this.selectedFileIndex = 0;
+    }
     
     // Validación
     files.forEach(f => {
@@ -38,7 +45,33 @@ export class PdfWorkflowComponent {
     });
   }
 
-  selectFile(file: PdfFile) {
-    this.archivosSeleccionados = file;
+  // Cambia el archivo seleccionado
+  selectFile(file: PdfFile, index: number) {
+    this.selectedFile = file;
+    this.selectedFileIndex = index;
+    console.log("📄 Archivo seleccionado:", file.name);
+  }
+
+  // Abre las herramientas de edición
+  openEditor() {
+    if (this.uploadedFiles.length === 0) {
+      alert('⚠️ Primero debes subir archivos PDF');
+      return;
+    }
+    this.currentTool = 'editor';
+  }
+
+  // Abre las herramientas de conversión
+  openConverter() {
+    if (this.uploadedFiles.length === 0) {
+      alert('⚠️ Primero debes subir archivos PDF');
+      return;
+    }
+    this.currentTool = 'convertidor';
+  }
+
+  // Cierra las herramientas
+  closeTool() {
+    this.currentTool = 'none';
   }
 }
