@@ -4,13 +4,12 @@
     <p>Selecciona una acción para modificar tu PDF</p>
   </div>
 
-  <!-- === GRID: LATERAL IZQUIERDO + PREVIEW === -->
+  <!-- GRID: PANEL IZQUIERDO + PREVIEW -->
   <div class="preview-container">
 
-    <!-- PANEL IZQUIERDO – LISTA DE ARCHIVOS -->
+    <!-- PANEL IZQUIERDO: LISTA DE ARCHIVOS -->
     <div class="file-list">
       <h3>Archivos cargados</h3>
-
       <ul>
         <li
           *ngFor="let f of allFiles; let i = index"
@@ -20,30 +19,27 @@
           📄 {{ f.name }}
         </li>
       </ul>
-
     </div>
 
-    <!-- PANEL DERECHO – PREVIEW DEL PDF -->
+    <!-- PANEL DERECHO: VISTA PREVIA DEL PDF -->
     <div class="preview-area">
-
       <h3 *ngIf="file">Vista previa: {{ file.name }}</h3>
-
       <iframe
         *ngIf="previewUrl"
         [src]="previewUrl"
         class="preview-frame">
       </iframe>
-
       <p *ngIf="!previewUrl">Selecciona un archivo para ver la vista previa.</p>
-
     </div>
 
   </div>
+
   <hr>
 
-  <!-- === TARJETAS DE HERRAMIENTAS === -->
+  <!-- TARJETAS DE HERRAMIENTAS -->
   <div class="editor-tools-grid">
 
+    <!-- UNIR PDFs -->
     <div class="tool-card" (click)="!processing && mergeFiles()">
       <div class="tool-icon merge">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,6 +54,7 @@
       <div class="tool-badge">Combinar</div>
     </div>
 
+    <!-- DIVIDIR PDF -->
     <div class="tool-card" (click)="!processing && splitFile()">
       <div class="tool-icon split">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,6 +69,7 @@
       <div class="tool-badge">Separar</div>
     </div>
 
+    <!-- ROTAR PÁGINAS -->
     <div class="tool-card" (click)="!processing && rotateFile(90)">
       <div class="tool-icon rotate">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,6 +84,7 @@
       <div class="tool-badge">Girar</div>
     </div>
 
+    <!-- ELIMINAR PÁGINAS -->
     <div class="tool-card danger" (click)="!processing && deletePages()">
       <div class="tool-icon delete">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,6 +99,7 @@
       <div class="tool-badge danger">Eliminar</div>
     </div>
 
+    <!-- REORGANIZAR -->
     <div class="tool-card" (click)="!processing && reorderPages()">
       <div class="tool-icon reorder">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,6 +114,24 @@
       <div class="tool-badge">Ordenar</div>
     </div>
 
+<<<<<<< HEAD
+=======
+    <!-- EXTRAER PÁGINAS -->
+    <div class="tool-card" (click)="!processing && extractPages()">
+      <div class="tool-icon extract">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <div class="tool-content">
+        <h3 class="tool-label">Extraer Páginas</h3>
+        <p class="tool-desc">Crea nuevo PDF con páginas seleccionadas</p>
+      </div>
+      <div class="tool-badge">Extraer</div>
+    </div>
+
+>>>>>>> develop
   </div>
 
   <!-- OVERLAYS -->
@@ -136,5 +154,26 @@
     </svg>
     {{ errorMessage }}
   </div>
+
+  <!-- MODAL PARA SELECCIÓN DE PÁGINAS (CAMBIO: RANGO) -->
+<div class="page-selector-overlay" *ngIf="showPageSelector">
+  <div class="page-selector-modal">
+    <h2>Ingresa las páginas a mantener</h2>
+
+    <p>Ejemplo: 1-3,5,7-9</p>
+    <input
+      type="text"
+      [(ngModel)]="pageRangeInput"
+      placeholder="1-3,5,7-9"
+      class="page-range-input"
+    />
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="cancelPages()">Cancelar</button>
+      <button class="btn-confirm" (click)="confirmPages()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 
 </div>
