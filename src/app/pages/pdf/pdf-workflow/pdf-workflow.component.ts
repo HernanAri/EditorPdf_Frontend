@@ -4,6 +4,7 @@ import { EditorComponent } from '../editor/editor.component';
 import { ConvertidorComponent } from '../convertidor/convertidor.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 type ToolMode = 'none' | 'editor' | 'convertidor';
 
@@ -26,6 +27,17 @@ export class PdfWorkflowComponent {
   selectedFile: PdfFile | null = null;
   currentTool: ToolMode = 'none';
   selectedFileIndex: number = 0;
+  activeTool: 'editor' | 'convertidor' | null = null;
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['tool']) {
+        this.activeTool = params['tool'];
+      }
+    });
+  }
 
   // Recibe una lista de archivos desde upload
   onFilesUploaded(files: PdfFile[]) {

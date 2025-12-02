@@ -4,6 +4,7 @@ import { environment } from '../../../../environments/environment';
 import { PdfFile } from '../upload/upload.component';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { SafeResourceUrl } from '@angular/platform-browser';
 
 type ConversionFormat = 'excel' | 'word' | 'power point';
 
@@ -24,6 +25,8 @@ export class ConvertidorComponent implements OnChanges {
   successMessage = '';
   errorMessage = '';
   conversionProgress = 0;
+  selectedFileIndex = 0;
+  previewUrl: SafeResourceUrl | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -104,7 +107,7 @@ export class ConvertidorComponent implements OnChanges {
   });
 
   this.http.post(
-    `${environment.apiUrl2}/convertir/convertir`, 
+    `${environment.apiUrlConvertidor2}/convertir`, 
     body,  // JSON en lugar de FormData
     { headers, responseType: 'blob' }
   ).subscribe({

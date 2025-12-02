@@ -1,0 +1,128 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>{{ getTitle() }}</h2>
+      <button class="close-btn" (click)="onCancel()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-description">{{ getDescription() }}</p>
+
+      <!-- UNIR PDFs -->
+      <div *ngIf="config.action === 'merge'" class="form-section">
+        <div class="info-box">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Los archivos se combinarán en el orden en que fueron cargados</span>
+        </div>
+      </div>
+
+      <!-- DIVIDIR PDF -->
+      <div *ngIf="config.action === 'split'" class="form-section">
+        <label class="form-label">
+          Páginas a mantener (Total: {{ config.totalPages }})
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="pageRangeInput"
+          placeholder="Ej: 1-3,5,7-9"
+          class="form-input"
+        />
+        <small class="form-hint">Ingresa rangos o números separados por comas</small>
+      </div>
+
+      <!-- ROTAR PÁGINAS -->
+      <div *ngIf="config.action === 'rotate'" class="form-section">
+        <label class="form-label">
+          Páginas a rotar (Total: {{ config.totalPages }})
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="pageRangeInput"
+          placeholder="Ej: 1-3,5,7-9 o dejar vacío para todas"
+          class="form-input"
+        />
+        <small class="form-hint">Vacío = todas las páginas</small>
+
+        <label class="form-label" style="margin-top: 1rem;">Ángulo de rotación</label>
+        <div class="rotation-options">
+          <label class="radio-option" [class.selected]="rotationDegrees === 90">
+            <input type="radio" [(ngModel)]="rotationDegrees" [value]="90" />
+            <span>90° ↻</span>
+          </label>
+          <label class="radio-option" [class.selected]="rotationDegrees === 180">
+            <input type="radio" [(ngModel)]="rotationDegrees" [value]="180" />
+            <span>180° ↻</span>
+          </label>
+          <label class="radio-option" [class.selected]="rotationDegrees === 270">
+            <input type="radio" [(ngModel)]="rotationDegrees" [value]="270" />
+            <span>270° ↺</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ELIMINAR PÁGINAS -->
+      <div *ngIf="config.action === 'delete'" class="form-section">
+        <div class="checkbox-header">
+          <label class="form-label">
+            Selecciona páginas a conservar ({{ getSelectedCount() }}/{{ config.totalPages }})
+          </label>
+          <div class="toggle-buttons">
+            <button class="toggle-btn" (click)="toggleAllPages(true)">Todas</button>
+            <button class="toggle-btn" (click)="toggleAllPages(false)">Ninguna</button>
+          </div>
+        </div>
+
+        <div class="pages-grid">
+          <label 
+            *ngFor="let page of totalPagesArray" 
+            class="page-checkbox"
+            [class.checked]="selectedPages[page]"
+          >
+            <input 
+              type="checkbox" 
+              [(ngModel)]="selectedPages[page]"
+            />
+            <span>{{ page }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- REORGANIZAR -->
+      <div *ngIf="config.action === 'reorder'" class="form-section">
+        <label class="form-label">
+          Nuevo orden de páginas (Total: {{ config.totalPages }})
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="newOrder"
+          placeholder="Ej: 3,1,2,4,5"
+          class="form-input"
+        />
+        <small class="form-hint">
+          Ingresa todas las páginas en el orden deseado, separadas por comas
+        </small>
+      </div>
+
+      <!-- MENSAJE DE ERROR -->
+      <div *ngIf="errorMessage" class="error-message">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ errorMessage }}
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-cancel" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button class="btn btn-confirm" (click)="onConfirm()">
+        Confirmar
+      </button>
+    </div>
+  </div>
+</div>

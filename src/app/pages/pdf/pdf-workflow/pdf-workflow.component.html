@@ -4,12 +4,14 @@
 
   <!-- SOLO UN EDITOR -->
   <app-editor
+      *ngIf="activeTool === 'editor'"
       [allFiles]="uploadedFiles"
       [file]="uploadedFiles[0]">
   </app-editor>
 
   <!-- SOLO UN CONVERTIDOR -->
   <app-convertidor
+      *ngIf="activeTool === 'convertidor'"
       [allFiles]="uploadedFiles"
       [file]="uploadedFiles[0]">
   </app-convertidor>

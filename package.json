@@ -26,11 +26,8 @@
         "chart.js": "4.4.2",
         "crypto-js": "^4.2.0",
         "jquery": "^3.7.1",
-<<<<<<< HEAD
         "moment": "^2.30.1",
-=======
-        "pdfjs-dist": "^3.7.107",
->>>>>>> develop
+        "pdfjs-dist": "^3.11.174",
         "primeclt": "^0.1.5",
         "primeicons": "^7.0.0",
         "primeng": "^19.0.8",
