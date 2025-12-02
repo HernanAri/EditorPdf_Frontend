@@ -10,6 +10,6 @@ export const environment = {
   apiUrlConvertidor:'https://devapps.emergiacc.com/EditorPdfApiRest',
   apiUrlConvertidor2:'http://127.0.0.1:8000',
   apiUrlEditor:'https://devapps.emergiacc.com/EditorPdfApiRest',
-  apiUrlEditor2:'http://127.0.0.1:8000'
+  apiUrlEditor2:'http://127.0.0.1:8000/herramientas/pdf'
 
 };

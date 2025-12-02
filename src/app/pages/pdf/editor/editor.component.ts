@@ -61,7 +61,7 @@ export class EditorComponent implements OnChanges {
           else if (this.file.id) {
             try {
               const blob = await firstValueFrom(
-                this.http.get(`${environment.apiUrlUpload2}/pdf-file/obtener/${this.file.id}`, { 
+                this.http.get(`${environment.apiUrlUpload2}/pdf-file/obtener/${this.file.id}`, {
                   responseType: 'blob',
                   headers: new HttpHeaders({
                     Authorization: `Bearer ${sessionStorage.getItem('token')}`
@@ -270,7 +270,7 @@ export class EditorComponent implements OnChanges {
         this.executeMerge();
         break;
       case 'split':
-        this.executeSplit(result.data.pages);
+        this.executeSplit(result.data.paginas);
         break;
       case 'rotate':
         this.executeRotate(result.data.pages, result.data.degrees);
@@ -321,19 +321,19 @@ export class EditorComponent implements OnChanges {
       });
   }
 
-  private executeSplit(pages: number[]): void {
+  private executeSplit(groups: number[][]): void {
     if (!this.file?.id) return;
 
     this.processing = true;
 
     const payload = {
       archivo_id: this.file.id,
-      paginas: [pages]  // Un solo array con todas las páginas
+      paginas: groups
     };
+
 
     const headers = new HttpHeaders({
       Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
     });
 
     this.http
@@ -480,4 +480,4 @@ export class EditorComponent implements OnChanges {
     const url = URL.createObjectURL(blob);
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
-} 
+}

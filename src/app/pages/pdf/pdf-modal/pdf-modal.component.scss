@@ -96,7 +96,7 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
-  &::placeholder {  
+  &::placeholder {
     color: #9ca3af;
   }
 }
@@ -164,7 +164,7 @@
   &.selected {
     border-color: rgb(224,89,42,1);
     background: rgb(224,89,42,0.8);
-    
+
     span {
       color: white;
     }
@@ -343,3 +343,81 @@
     grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
   }
 }
+
+.split-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.range-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.range-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #888;
+}
+
+.btn-add-range {
+  background: #2196f3;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-remove-range {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hint {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.reorder-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+}
+
+.page-box {
+  width: 70px;
+  height: 70px;
+  background: #2d2d2d;
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  border: 1px solid #444;
+  transition: transform 0.2s;
+  user-select: none;
+}
+
+.page-box:active {
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+

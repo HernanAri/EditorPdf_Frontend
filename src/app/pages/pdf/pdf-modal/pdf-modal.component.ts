@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CdkDragDrop, moveItemInArray,DragDropModule } from '@angular/cdk/drag-drop';
 
 export type ModalAction = 'merge' | 'split' | 'rotate' | 'delete' | 'reorder' | 'extract';
 
@@ -18,9 +19,10 @@ export interface ModalResult {
 @Component({
   selector: 'app-pdf-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './pdf-modal.component.html',
   styleUrls: ['./pdf-modal.component.scss']
+
 })
 export class PdfModalComponent implements OnInit {
   @Input() config!: ModalConfig;
@@ -33,9 +35,11 @@ export class PdfModalComponent implements OnInit {
   newOrder: string = '';
   selectedPages: Record<number, boolean> = {};
   totalPagesArray: number[] = [];
+  reorderPages: number[] = [];
 
   // UI
   errorMessage: string = '';
+i: any;
 
   ngOnInit(): void {
     if (this.config.totalPages > 0) {
@@ -43,7 +47,7 @@ export class PdfModalComponent implements OnInit {
         { length: this.config.totalPages },
         (_, i) => i + 1
       );
-      
+
       // Inicializar todos los checkboxes como seleccionados
       this.selectedPages = {};
       this.totalPagesArray.forEach(p => (this.selectedPages[p] = true));
@@ -53,6 +57,9 @@ export class PdfModalComponent implements OnInit {
     if (this.config.action === 'reorder' && this.config.totalPages > 0) {
       this.newOrder = this.totalPagesArray.join(',');
     }
+    if (this.config.action === 'reorder') {
+    this.reorderPages = [...this.totalPagesArray]; // copia del array de páginas
+}
   }
 
   getTitle(): string {
@@ -73,7 +80,7 @@ export class PdfModalComponent implements OnInit {
       split: 'Ingresa las páginas que deseas mantener en el nuevo PDF',
       rotate: 'Selecciona el ángulo de rotación para las páginas',
       delete: 'Desmarca las páginas que deseas eliminar',
-      reorder: 'Ingresa el nuevo orden de las páginas (ej: 3,1,2,4)',
+      reorder: 'Arrastra las páginas para reordenarlas',
       extract: 'Ingresa las páginas que deseas extraer'
     };
     return descriptions[this.config.action];
@@ -93,16 +100,25 @@ export class PdfModalComponent implements OnInit {
           break;
 
         case 'split':
-          const splitPages = this.parsePageRange(this.pageRangeInput);
-          if (splitPages.length === 0) {
-            this.errorMessage = 'Ingresa al menos una página válida';
-            return;
-          }
-          result = {
-            action: 'split',
-            data: { pages: splitPages }
-          };
-          break;
+            const groups: number[][] = [];
+
+            for (const r of this.splitRanges) {
+                const parsed = this.parsePageRange(r);
+
+                if (parsed.length === 0) {
+                this.errorMessage = 'Todos los rangos deben ser válidos';
+                return;
+                }
+
+                groups.push(parsed);
+            }
+
+            result = {
+                action: 'split',
+                data: { paginas: groups }
+            };
+            break;
+
 
         case 'rotate':
           const rotatePages = this.parsePageRange(this.pageRangeInput);
@@ -112,9 +128,9 @@ export class PdfModalComponent implements OnInit {
           }
           result = {
             action: 'rotate',
-            data: { 
+            data: {
               pages: rotatePages,
-              degrees: this.rotationDegrees 
+              degrees: this.rotationDegrees
             }
           };
           break;
@@ -143,43 +159,27 @@ export class PdfModalComponent implements OnInit {
 
           result = {
             action: 'delete',
-            data: { 
+            data: {
               pagesToDelete: pagesToDelete,
-              pagesToKeep: pagesToKeep 
+              pagesToKeep: pagesToKeep
             }
           };
-          
+
           console.log('📤 Modal enviando resultado:', result);
           break;
 
         case 'reorder':
-          const order = this.newOrder
-            .split(',')
-            .map(n => Number(n.trim()))
-            .filter(n => !isNaN(n) && n >= 1 && n <= this.config.totalPages);
-
-          if (order.length === 0) {
-            this.errorMessage = 'Ingresa un orden válido';
-            return;
-          }
-
-          if (order.length !== this.config.totalPages) {
-            this.errorMessage = `Debes incluir todas las ${this.config.totalPages} páginas`;
-            return;
-          }
-
-          // Verificar que no haya duplicados
-          const uniquePages = new Set(order);
-          if (uniquePages.size !== order.length) {
-            this.errorMessage = 'No puedes repetir páginas';
-            return;
+          if (this.reorderPages.length !== this.config.totalPages) {
+              this.errorMessage = 'El orden está incompleto.';
+              return;
           }
 
           result = {
-            action: 'reorder',
-            data: { order }
+              action: 'reorder',
+              data: { order: this.reorderPages }
           };
           break;
+
 
         case 'extract':
           const extractPages = this.parsePageRange(this.pageRangeInput);
@@ -243,4 +243,25 @@ export class PdfModalComponent implements OnInit {
   getSelectedCount(): number {
     return Object.values(this.selectedPages).filter(v => v).length;
   }
+
+  // CAMPOS NUEVOS PARA MULTI-RANGOS
+splitRanges: string[] = [''];
+
+addRange() {
+  this.splitRanges.push('');
+}
+
+removeRange(index: number) {
+  if (this.splitRanges.length > 1) {
+    this.splitRanges.splice(index, 1);
+  }
+}
+trackByIndex(index: number, item: any): number {
+  return index;
+}
+
+onDrop(event: CdkDragDrop<number[]>) {
+  moveItemInArray(this.reorderPages, event.previousIndex, event.currentIndex);
+}
+
 }

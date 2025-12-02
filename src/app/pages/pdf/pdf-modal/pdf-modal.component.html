@@ -12,7 +12,7 @@
       <div *ngIf="config.action === 'merge'" class="form-section">
         <div class="info-box">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>Los archivos se combinarán en el orden en que fueron cargados</span>
@@ -20,18 +20,37 @@
       </div>
 
       <!-- DIVIDIR PDF -->
-      <div *ngIf="config.action === 'split'" class="form-section">
-        <label class="form-label">
-          Páginas a mantener (Total: {{ config.totalPages }})
-        </label>
-        <input
-          type="text"
-          [(ngModel)]="pageRangeInput"
-          placeholder="Ej: 1-3,5,7-9"
-          class="form-input"
-        />
-        <small class="form-hint">Ingresa rangos o números separados por comas</small>
-      </div>
+      <div *ngIf="config.action === 'split'">
+  <p>Puedes agregar múltiples rangos, cada uno será un PDF.</p>
+
+  <div
+    *ngFor="let r of splitRanges; let i = index; trackBy: trackByIndex"
+    class="range-box">
+
+    <label>Rango {{ i + 1 }}</label>
+
+    <div class="range-row">
+      <input
+        type="text"
+        class="form-control"
+        [(ngModel)]="splitRanges[i]"
+        placeholder="Ej: 1-3,5"
+      />
+
+      <button
+        class="btn btn-danger"
+        *ngIf="splitRanges.length > 1"
+        (click)="removeRange(i)">
+        Eliminar
+      </button>
+    </div>
+
+  </div>
+
+  <button class="btn btn-secondary mt-2" (click)="addRange()">
+    ➕ Añadir otro rango
+  </button>
+</div>
 
       <!-- ROTAR PÁGINAS -->
       <div *ngIf="config.action === 'rotate'" class="form-section">
@@ -76,40 +95,39 @@
         </div>
 
         <div class="pages-grid">
-          <label 
-            *ngFor="let page of totalPagesArray" 
+          <label
+            *ngFor="let page of totalPagesArray"
             class="page-checkbox"
             [class.checked]="selectedPages[page]"
           >
-            <input 
-              type="checkbox" 
-              [(ngModel)]="selectedPages[page]"
-            />
+            <input type="checkbox" [(ngModel)]="selectedPages[page]" />
             <span>{{ page }}</span>
           </label>
         </div>
       </div>
 
-      <!-- REORGANIZAR -->
-      <div *ngIf="config.action === 'reorder'" class="form-section">
-        <label class="form-label">
-          Nuevo orden de páginas (Total: {{ config.totalPages }})
-        </label>
-        <input
-          type="text"
-          [(ngModel)]="newOrder"
-          placeholder="Ej: 3,1,2,4,5"
-          class="form-input"
-        />
-        <small class="form-hint">
-          Ingresa todas las páginas en el orden deseado, separadas por comas
-        </small>
-      </div>
+        <!-- REORGANIZAR -->
+        <div *ngIf="config.action === 'reorder'" class="form-section">
+        <div
+            cdkDropList
+            [cdkDropListData]="reorderPages"
+            (cdkDropListDropped)="onDrop($event)"
+            class="reorder-container"
+        >
+            <div
+            class="page-box"
+            *ngFor="let page of reorderPages; trackBy: trackByIndex"
+            cdkDrag
+            >
+            Página {{ page }}
+            </div>
+        </div>
+    </div>
 
-      <!-- MENSAJE DE ERROR -->
+      <!-- ERROR -->
       <div *ngIf="errorMessage" class="error-message">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         {{ errorMessage }}
@@ -117,12 +135,7 @@
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-cancel" (click)="onCancel()">
-        Cancelar
-      </button>
-      <button class="btn btn-confirm" (click)="onConfirm()">
-        Confirmar
-      </button>
+      <button class="btn btn-cancel" (click)="onCancel()">Cancelar</button>
+      <button class="btn btn-confirm" (click)="onConfirm()">Confirmar</button>
     </div>
   </div>
-</div>
