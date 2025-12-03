@@ -1,11 +1,11 @@
 {
-    "name": "em-proyecto",
+    "name": "em-editor-pdf",
     "version": "19.0.1",
     "scripts": {
         "ng": "ng",
         "start": "ng serve",
-        "build": "node  ./node_modules/@angular/cli/bin/ng build --configuration=production --base-href /Proyecto/ --aot",
-        "build-development": "node  ./node_modules/@angular/cli/bin/ng build --configuration=development --base-href /Proyecto/ --aot",
+        "build": "node  ./node_modules/@angular/cli/bin/ng build --configuration=production --base-href /EditorPDF/ --aot",
+        "build-development": "node  ./node_modules/@angular/cli/bin/ng build --configuration=development --base-href /EditorPDF/ --aot",
         "watch": "ng build --watch --configuration development",
         "format": "prettier --write \"**/*.{js,mjs,ts,mts,d.ts,html}\" --cache",
         "test": "ng test"
