@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PdfFile } from '../upload/upload.component';
 import { CommonModule } from '@angular/common';
@@ -6,14 +6,22 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.js';
 import { PDFDocumentProxy } from 'pdfjs-dist/types/src/display/api';
 import { firstValueFrom } from 'rxjs';
 import { PdfModalComponent, ModalConfig, ModalResult } from '../pdf-modal/pdf-modal.component';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url
-).toString();
+const configurePdfWorker = () => {
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+  } catch (error) {
+    console.warn('⚠️ Worker local no disponible, usando CDN');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+};
+
+configurePdfWorker();
 
 @Component({
   selector: 'app-editor',
@@ -22,7 +30,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements OnChanges {
+export class EditorComponent implements OnChanges, OnDestroy {
   @Input() file: PdfFile | null = null;
   @Input() allFiles: PdfFile[] = [];
   @Output() closePreview = new EventEmitter<void>();
@@ -40,52 +48,31 @@ export class EditorComponent implements OnChanges {
   showModal = false;
   modalConfig: ModalConfig | null = null;
 
+  private blobUrls: string[] = []; // Para rastrear todos los blob URLs creados
+
   constructor(
     private http: HttpClient,
     private sanitizer: DomSanitizer
   ) {}
 
-  async ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['file'] && this.file) {
       this.clearMessages();
 
       try {
-        // Solo calcular páginas si aún no las tiene
+        // Calcular páginas si no están definidas
         if (!this.file.pages || this.file.pages === 0) {
-          // Caso 1: viene desde input con File
-          if (this.file.file) {
-            const pageCount = await this.getPdfPageCount(this.file.file);
-            this.file.pages = pageCount;
-          }
-          // Caso 2: solo hay id -> obtener blob del backend y contar
-          else if (this.file.id) {
-            try {
-              const blob = await firstValueFrom(
-                this.http.get(`${environment.apiUrlUpload}/pdf-file/obtener/${this.file.id}`, {
-                  responseType: 'blob',
-                  headers: new HttpHeaders({
-                    Authorization: `Bearer ${sessionStorage.getItem('token')}`
-                  })
-                })
-              );
-              const pageCount = await this.getTotalPages(blob);
-              this.file.pages = pageCount;
-            } catch (err) {
-              console.error('Error al obtener páginas:', err);
-              // Intentar con un valor por defecto
-              this.file.pages = 1;
-            }
-          }
+          await this.calculatePages();
         }
 
-        // Cargar preview si hay id
+        // Cargar preview si tiene ID
         if (this.file.id) {
           this.loadPdfPreview(this.file.id);
         }
       } catch (err) {
-        console.error('❌ Error al calcular páginas', err);
-        this.errorMessage = 'No se pudo calcular el número de páginas';
-        // Asignar un valor por defecto para que no bloquee la UI
+        console.error('❌ Error al procesar archivo', err);
+        this.errorMessage = 'No se pudo procesar el archivo';
+        // Asignar valor por defecto
         if (this.file) {
           this.file.pages = 1;
         }
@@ -93,30 +80,113 @@ export class EditorComponent implements OnChanges {
     }
   }
 
+  private async calculatePages(): Promise<void> {
+    if (!this.file) {
+      console.log('⚠️ No hay archivo para calcular páginas');
+      return;
+    }
+
+    console.log('🔍 Iniciando cálculo de páginas para:', this.file.name);
+    console.log('📋 Datos del archivo:', {
+      hasFile: !!this.file.file,
+      hasId: !!this.file.id,
+      currentPages: this.file.pages
+    });
+
+    try {
+      // Caso 1: Archivo desde input local (File object)
+      if (this.file.file) {
+        console.log('📁 Procesando archivo local...');
+        const pageCount = await this.getPdfPageCount(this.file.file);
+        this.file.pages = pageCount;
+        console.log(`✅ Páginas calculadas (archivo local): ${pageCount}`);
+        return;
+      }
+
+      // Caso 2: Archivo desde servidor (por ID)
+      if (this.file.id) {
+        console.log('🌐 Descargando archivo del servidor...');
+        const blob = await this.fetchFileBlob(this.file.id);
+        console.log('📦 Blob recibido, tamaño:', blob.size, 'tipo:', blob.type);
+        const pageCount = await this.getTotalPages(blob);
+        this.file.pages = pageCount;
+        console.log(`✅ Páginas calculadas (servidor): ${pageCount}`);
+        return;
+      }
+
+      // Si no hay ni file ni id, usar valor por defecto
+      console.warn('⚠️ No se encontró ni File ni ID, usando valor por defecto');
+      this.file.pages = 1;
+    } catch (err) {
+      console.error('❌ Error detallado al calcular páginas:', err);
+      if (err instanceof Error) {
+        console.error('  Mensaje:', err.message);
+        console.error('  Stack:', err.stack);
+      }
+      this.file.pages = 1; // Valor por defecto en caso de error
+      this.errorMessage = 'No se pudo calcular el número de páginas del PDF';
+    }
+  }
+
+  private async fetchFileBlob(fileId: string): Promise<Blob> {
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`
+    });
+
+    return await firstValueFrom(
+      this.http.get(`${environment.apiUrlUpload}/pdf-file/obtener/${fileId}`, {
+        responseType: 'blob',
+        headers
+      })
+    );
+  }
+
   private loadPdfPreview(fileId: string): void {
+    this.loadingPreview = true;
+    
     const headers = new HttpHeaders({
       Authorization: `Bearer ${sessionStorage.getItem('token')}`
     });
 
     this.http
-      .get(`${environment.apiUrlUpload}/pdf-file/preview/${fileId}`, { headers, responseType: 'blob' })
+      .get(`${environment.apiUrlUpload}/pdf-file/preview/${fileId}`, { 
+        headers, 
+        responseType: 'blob' 
+      })
       .subscribe({
         next: (blob: Blob) => {
+          // Limpiar preview anterior
+          this.revokeCurrentPreview();
+          
+          // Crear nuevo blob URL
           const url = URL.createObjectURL(blob);
+          this.blobUrls.push(url); // Rastrear para limpieza posterior
+          this.currentBlobUrl = url;
           this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+          this.loadingPreview = false;
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Error al cargar preview:', err);
           this.errorMessage = '❌ No se pudo cargar la vista previa';
+          this.loadingPreview = false;
         }
       });
   }
 
-  ngOnDestroy() {
-    if (this.previewUrl) {
-      const url = (this.previewUrl as any).changingThisBreaksApplicationSecurity;
-      if (url && url.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
-      }
+  private revokeCurrentPreview(): void {
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar todos los blob URLs creados
+    this.blobUrls.forEach(url => URL.revokeObjectURL(url));
+    this.blobUrls = [];
+    
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
     }
   }
 
@@ -138,39 +208,88 @@ export class EditorComponent implements OnChanges {
   }
 
   downloadFile(): void {
-    if (!this.file?.id) return;
+    if (!this.file?.id) {
+      this.errorMessage = 'No hay archivo para descargar';
+      return;
+    }
 
     const headers = new HttpHeaders({
       Authorization: `Bearer ${sessionStorage.getItem('token')}`
     });
 
     this.http
-      .get(`${environment.apiUrlUpload}/pdf-file/obtener/${this.file.id}`, { headers, responseType: 'blob' })
+      .get(`${environment.apiUrlUpload}/pdf-file/obtener/${this.file.id}`, { 
+        headers, 
+        responseType: 'blob' 
+      })
       .subscribe({
         next: (blob: Blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = this.file?.name || 'archivo.pdf';
-          link.click();
-          window.URL.revokeObjectURL(url);
+          this.downloadBlob(blob, this.file?.name || 'archivo.pdf');
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Error al descargar:', err);
           this.errorMessage = '❌ Error al descargar el archivo';
         }
       });
   }
 
-  async getPdfPageCount(file: File): Promise<number> {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    return pdf.numPages;
+  private async getPdfPageCount(file: File): Promise<number> {
+    console.log('📖 Leyendo archivo:', file.name, 'Tamaño:', file.size);
+    
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength);
+      
+      const loadingTask = pdfjsLib.getDocument({ 
+        data: arrayBuffer,
+        verbosity: 0 // Reducir logs de pdf.js
+      });
+      
+      console.log('⏳ Cargando documento PDF...');
+      const pdf = await loadingTask.promise;
+      
+      console.log('✅ PDF cargado exitosamente');
+      console.log('📄 Número de páginas:', pdf.numPages);
+      
+      return pdf.numPages;
+    } catch (error) {
+      console.error('❌ Error detallado en getPdfPageCount:', error);
+      if (error instanceof Error) {
+        console.error('  Tipo de error:', error.name);
+        console.error('  Mensaje:', error.message);
+        console.error('  Stack:', error.stack);
+      }
+      throw new Error(`No se pudo leer el archivo PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 
   private async getTotalPages(blob: Blob): Promise<number> {
-    const arrayBuffer = await blob.arrayBuffer();
-    const pdfDoc: PDFDocumentProxy = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    return pdfDoc.numPages;
+    console.log('📦 Procesando blob:', blob.size, 'bytes, tipo:', blob.type);
+    
+    try {
+      const arrayBuffer = await blob.arrayBuffer();
+      console.log('✅ ArrayBuffer del blob obtenido, tamaño:', arrayBuffer.byteLength);
+      
+      const loadingTask = pdfjsLib.getDocument({ 
+        data: arrayBuffer,
+        verbosity: 0
+      });
+      
+      console.log('⏳ Cargando documento PDF desde blob...');
+      const pdfDoc: PDFDocumentProxy = await loadingTask.promise;
+      
+      console.log('✅ PDF cargado exitosamente desde blob');
+      console.log('📄 Número de páginas:', pdfDoc.numPages);
+      
+      return pdfDoc.numPages;
+    } catch (error) {
+      console.error('❌ Error detallado en getTotalPages:', error);
+      if (error instanceof Error) {
+        console.error('  Tipo de error:', error.name);
+        console.error('  Mensaje:', error.message);
+      }
+      throw new Error(`No se pudo leer el PDF desde blob: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    }
   }
 
   // ==================== ABRIR MODALES ====================
@@ -227,7 +346,6 @@ export class EditorComponent implements OnChanges {
       return;
     }
 
-    // Si no hay páginas calculadas, usar 1 como valor por defecto
     const totalPages = this.file.pages && this.file.pages > 0 ? this.file.pages : 1;
 
     console.log('🔍 Abriendo modal eliminar - Total páginas:', totalPages);
@@ -276,10 +394,8 @@ export class EditorComponent implements OnChanges {
         this.executeRotate(result.data.pages, result.data.degrees);
         break;
       case 'delete':
-        console.log('🗑️ Iniciando eliminación:', result.data);
-        // Verificar que pagesToDelete existe
         if (!result.data.pagesToDelete || !Array.isArray(result.data.pagesToDelete)) {
-          console.error('❌ pagesToDelete no está definido o no es un array:', result.data);
+          console.error('❌ pagesToDelete no válido:', result.data);
           this.errorMessage = 'Error: No se recibieron las páginas a eliminar';
           return;
         }
@@ -300,14 +416,21 @@ export class EditorComponent implements OnChanges {
   private executeMerge(): void {
     this.processing = true;
 
-    const fileIds = this.allFiles.map(f => f.id);
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    });
+    const fileIds = this.allFiles.map(f => f.id).filter(id => id); // Filtrar IDs nulos
+    
+    if (fileIds.length < 2) {
+      this.errorMessage = 'No hay suficientes archivos con ID para unir';
+      this.processing = false;
+      return;
+    }
+
+    const headers = this.getAuthHeaders();
 
     this.http
-      .post(`${environment.apiUrlEditor}/unir`, { archivos: fileIds }, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/unir`, 
+        { archivos: fileIds }, 
+        { headers, responseType: 'blob' }
+      )
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, 'pdf_unido.pdf');
@@ -315,6 +438,7 @@ export class EditorComponent implements OnChanges {
           this.processing = false;
         },
         error: err => {
+          console.error('Error al unir:', err);
           this.errorMessage = err.error?.detail || '❌ Error al unir los PDFs';
           this.processing = false;
         }
@@ -322,7 +446,10 @@ export class EditorComponent implements OnChanges {
   }
 
   private executeSplit(groups: number[][]): void {
-    if (!this.file?.id) return;
+    if (!this.file?.id) {
+      this.errorMessage = 'No hay archivo seleccionado';
+      return;
+    }
 
     this.processing = true;
 
@@ -331,13 +458,13 @@ export class EditorComponent implements OnChanges {
       paginas: groups
     };
 
-
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-    });
+    const headers = this.getAuthHeaders();
 
     this.http
-      .post(`${environment.apiUrlEditor}/dividir-seleccion`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/dividir-seleccion`, 
+        payload, 
+        { headers, responseType: 'blob' }
+      )
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, 'resultado.zip');
@@ -353,12 +480,17 @@ export class EditorComponent implements OnChanges {
   }
 
   private executeRotate(pages: number[], degrees: number): void {
-    if (!this.file?.id) return;
+    if (!this.file?.id) {
+      this.errorMessage = 'No hay archivo seleccionado';
+      return;
+    }
 
     this.processing = true;
 
     // Si no se especificaron páginas, rotar todas
-    const pagesToRotate = pages.length > 0 ? pages : Array.from({ length: this.file.pages! }, (_, i) => i + 1);
+    const pagesToRotate = pages.length > 0 
+      ? pages 
+      : Array.from({ length: this.file.pages! }, (_, i) => i + 1);
 
     const payload = {
       archivo_id: this.file.id,
@@ -366,13 +498,13 @@ export class EditorComponent implements OnChanges {
       grados: degrees
     };
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    });
+    const headers = this.getAuthHeaders();
 
     this.http
-      .post(`${environment.apiUrlEditor}/rotar`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/rotar`, 
+        payload, 
+        { headers, responseType: 'blob' }
+      )
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, this.file?.name || 'archivo_rotado.pdf');
@@ -381,6 +513,7 @@ export class EditorComponent implements OnChanges {
           this.processing = false;
         },
         error: err => {
+          console.error('Error al rotar:', err);
           this.errorMessage = '❌ Error al rotar páginas';
           this.processing = false;
         }
@@ -407,15 +540,13 @@ export class EditorComponent implements OnChanges {
 
     console.log('📤 Payload final:', JSON.stringify(payload, null, 2));
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    });
-
-    console.log('🚀 Enviando petición a:', `${environment.apiUrlEditor}/eliminar`);
+    const headers = this.getAuthHeaders();
 
     this.http
-      .post(`${environment.apiUrlEditor}/eliminar`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/eliminar`, 
+        payload, 
+        { headers, responseType: 'blob' }
+      )
       .subscribe({
         next: (blob: Blob) => {
           console.log('✅ Respuesta recibida, tamaño:', blob.size);
@@ -426,8 +557,6 @@ export class EditorComponent implements OnChanges {
         },
         error: err => {
           console.error('❌ Error completo:', err);
-          console.error('📋 Status:', err.status);
-          console.error('📋 Error body:', err.error);
           this.errorMessage = err.error?.detail || '❌ Error al eliminar páginas';
           this.processing = false;
         }
@@ -435,7 +564,10 @@ export class EditorComponent implements OnChanges {
   }
 
   private executeReorder(order: number[]): void {
-    if (!this.file?.id) return;
+    if (!this.file?.id) {
+      this.errorMessage = 'No hay archivo seleccionado';
+      return;
+    }
 
     this.processing = true;
 
@@ -444,13 +576,13 @@ export class EditorComponent implements OnChanges {
       nuevo_orden: order
     };
 
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
-      'Content-Type': 'application/json'
-    });
+    const headers = this.getAuthHeaders();
 
     this.http
-      .post(`${environment.apiUrlEditor}/reorganizar`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/reorganizar`, 
+        payload, 
+        { headers, responseType: 'blob' }
+      )
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, this.file?.name || 'archivo_reorganizado.pdf');
@@ -459,6 +591,7 @@ export class EditorComponent implements OnChanges {
           this.processing = false;
         },
         error: err => {
+          console.error('Error al reorganizar:', err);
           this.errorMessage = '❌ Error al reorganizar páginas';
           this.processing = false;
         }
@@ -466,6 +599,13 @@ export class EditorComponent implements OnChanges {
   }
 
   // ==================== UTILIDADES ====================
+
+  private getAuthHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    });
+  }
 
   private downloadBlob(blob: Blob, filename: string): void {
     const url = window.URL.createObjectURL(blob);
@@ -477,7 +617,13 @@ export class EditorComponent implements OnChanges {
   }
 
   private updatePreview(blob: Blob): void {
+    // Limpiar preview anterior
+    this.revokeCurrentPreview();
+    
+    // Crear nuevo preview
     const url = URL.createObjectURL(blob);
+    this.blobUrls.push(url);
+    this.currentBlobUrl = url;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 }
