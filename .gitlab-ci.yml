@@ -1,5 +1,6 @@
 stages:
   - deploy-test
+  - deploy-prod
 
 deploy-test:
   stage: deploy-test
@@ -29,6 +30,37 @@ deploy-test:
   artifacts:
     paths:
       - dist\em-editor-pdf\browser/
+
+
+deploy-prod:
+  stage: deploy-prod
+
+  only:
+    - master
+
+  tags:
+    - runner_server_57_tag
+
+  before_script:
+    - 'echo "Deploying in production EditorPDF"'
+    - '$env:PATH = "$env:NVM_SYMLINK;$env:PATH"'
+    - 'C:\nvm\nvm\nvm.exe list'
+    - 'C:\nvm\nvm\nvm.exe use 18.19.1'
+    - npm install --force
+
+  script:
+    - node -v
+    - npm run build
+    - Remove-Item -Path "E:\WebSites\EditorPDF\*" -exclude web.config -Recurse -Force
+    - Copy-Item -Path "dist\em-editor-pdf\browser\*" -Destination "E:\WebSites\EditorPDF\" -Recurse -Force
+    - exit
+
+  environment:
+    name: production
+
+  artifacts:
+    paths:
+    - dist\em-editor-pdf\browser/
 
 after_script:
   - exit

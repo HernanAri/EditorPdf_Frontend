@@ -84,14 +84,13 @@ export class LoginComponent implements OnInit {
         .subscribe((respuesta: any) => {
 
           if (respuesta.ResultadoExitoso || respuesta.Token) {
-            if ([PERMISOS.ADMIN].some(valor => respuesta.VariablesDeUsuarioLogadoDTO.Permisos.includes(valor))) {
+            
               this._router.navigate(['/pdf/upload']);
-              return;
             } else {
               this._messageService.add({ severity: 'error', summary: 'Error', detail: 'El usuario no tiene permisos para ingresar a la aplicación' });
               sessionStorage.clear();
             }
-          }
+          
 
           if (!respuesta.ResultadoExitoso && respuesta?.error?.message) {
             this._messageService.add({ severity: 'error', summary: 'Error', detail: respuesta.error.message });

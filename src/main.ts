@@ -3,10 +3,12 @@ import { appConfig } from './app.config';
 import { AppComponent } from './app.component';
 import { importProvidersFrom } from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { provideHttpClient } from '@angular/common/http';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(DragDropModule)
+    importProvidersFrom(DragDropModule),
+    provideHttpClient()
   ]
 });
 
