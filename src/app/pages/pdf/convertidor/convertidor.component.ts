@@ -107,7 +107,7 @@ export class ConvertidorComponent implements OnChanges {
   });
 
   this.http.post(
-    `${environment.apiUrlConvertidor2}/convertir`, 
+    `${environment.apiUrlConvertidor}/convertir`, 
     body,  // JSON en lugar de FormData
     { headers, responseType: 'blob' }
   ).subscribe({

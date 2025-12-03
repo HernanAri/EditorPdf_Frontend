@@ -61,7 +61,7 @@ export class EditorComponent implements OnChanges {
           else if (this.file.id) {
             try {
               const blob = await firstValueFrom(
-                this.http.get(`${environment.apiUrlUpload2}/pdf-file/obtener/${this.file.id}`, {
+                this.http.get(`${environment.apiUrlUpload}/pdf-file/obtener/${this.file.id}`, {
                   responseType: 'blob',
                   headers: new HttpHeaders({
                     Authorization: `Bearer ${sessionStorage.getItem('token')}`
@@ -99,7 +99,7 @@ export class EditorComponent implements OnChanges {
     });
 
     this.http
-      .get(`${environment.apiUrlUpload2}/pdf-file/preview/${fileId}`, { headers, responseType: 'blob' })
+      .get(`${environment.apiUrlUpload}/pdf-file/preview/${fileId}`, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           const url = URL.createObjectURL(blob);
@@ -145,7 +145,7 @@ export class EditorComponent implements OnChanges {
     });
 
     this.http
-      .get(`${environment.apiUrlUpload2}/pdf-file/obtener/${this.file.id}`, { headers, responseType: 'blob' })
+      .get(`${environment.apiUrlUpload}/pdf-file/obtener/${this.file.id}`, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           const url = window.URL.createObjectURL(blob);
@@ -307,7 +307,7 @@ export class EditorComponent implements OnChanges {
     });
 
     this.http
-      .post(`${environment.apiUrlEditor2}/unir`, { archivos: fileIds }, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/unir`, { archivos: fileIds }, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, 'pdf_unido.pdf');
@@ -337,7 +337,7 @@ export class EditorComponent implements OnChanges {
     });
 
     this.http
-      .post(`${environment.apiUrlEditor2}/dividir-seleccion`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/dividir-seleccion`, payload, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, 'resultado.zip');
@@ -372,7 +372,7 @@ export class EditorComponent implements OnChanges {
     });
 
     this.http
-      .post(`${environment.apiUrlEditor2}/rotar`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/rotar`, payload, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, this.file?.name || 'archivo_rotado.pdf');
@@ -412,10 +412,10 @@ export class EditorComponent implements OnChanges {
       'Content-Type': 'application/json'
     });
 
-    console.log('🚀 Enviando petición a:', `${environment.apiUrlEditor2}/eliminar`);
+    console.log('🚀 Enviando petición a:', `${environment.apiUrlEditor}/eliminar`);
 
     this.http
-      .post(`${environment.apiUrlEditor2}/eliminar`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/eliminar`, payload, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           console.log('✅ Respuesta recibida, tamaño:', blob.size);
@@ -450,7 +450,7 @@ export class EditorComponent implements OnChanges {
     });
 
     this.http
-      .post(`${environment.apiUrlEditor2}/reorganizar`, payload, { headers, responseType: 'blob' })
+      .post(`${environment.apiUrlEditor}/reorganizar`, payload, { headers, responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, this.file?.name || 'archivo_reorganizado.pdf');
