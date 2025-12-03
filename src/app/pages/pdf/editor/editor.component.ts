@@ -134,7 +134,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
     });
 
     return await firstValueFrom(
-      this.http.get(`${environment.apiUrlUpload}/pdf-file/obtener/${fileId}`, {
+      this.http.get(`${environment.apiUrlUpload}/obtener/${fileId}`, {
         responseType: 'blob',
         headers
       })
@@ -149,7 +149,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
     });
 
     this.http
-      .get(`${environment.apiUrlUpload}/pdf-file/preview/${fileId}`, { 
+      .get(`${environment.apiUrlUpload}/preview/${fileId}`, { 
         headers, 
         responseType: 'blob' 
       })
@@ -218,7 +218,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
     });
 
     this.http
-      .get(`${environment.apiUrlUpload}/pdf-file/obtener/${this.file.id}`, { 
+      .get(`${environment.apiUrlUpload}/obtener/${this.file.id}`, { 
         headers, 
         responseType: 'blob' 
       })

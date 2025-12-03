@@ -72,7 +72,7 @@ export class UploadComponent {
     });
 
     this.http.post<any>(
-      `${environment.apiUrlUpload}/pdf-file/Subir`,
+      `${environment.apiUrlUpload}/Subir`,
       formData,
       { headers, reportProgress: true, observe: 'events' }
     ).subscribe({
