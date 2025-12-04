@@ -6,5 +6,5 @@ export const environment = {
   apiUrlDominio: 'https://systemservices.emergiacc.com/ApiGateway/ActiveDirectory/GetDomainsActiveDirectoryFromJsonAsync',
   apiUrlUpload: 'https://systemservices.emergiacc.com/EditorPdfApiRest/api/v1/pdf-file',
   apiUrlConvertidor:'https://systemservices.emergiacc.com/EditorPdfApiRest/convertir',
-  apiUrlEditor:'https://systemservices.emergiacc.com/EditorPdfApiRest/herramientas/pdf',
+  apiUrlEditor:'https://systemservices.emergiacc.com/EditorPdfApiRest/herramientas/pdf'
 };
