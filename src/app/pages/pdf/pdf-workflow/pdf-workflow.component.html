@@ -1,15 +1,15 @@
-<app-upload (fileUploaded)="onFilesUploaded($event)"></app-upload>
+<app-upload (fileUploaded)="onFilesUploaded($event)"
+(fileSelected)="onFileSelected($event)"
+[file]="uploadedFiles"></app-upload>
 
 <div *ngIf="uploadedFiles.length > 0">
 
-  <!-- SOLO UN EDITOR -->
   <app-editor
       *ngIf="activeTool === 'editor'"
       [allFiles]="uploadedFiles"
       [file]="uploadedFiles[0]">
   </app-editor>
 
-  <!-- SOLO UN CONVERTIDOR -->
   <app-convertidor
       *ngIf="activeTool === 'convertidor'"
       [allFiles]="uploadedFiles"

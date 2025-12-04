@@ -6,9 +6,7 @@
     </div>
 
     <div class="modal-body">
-      <p class="modal-description">{{ getDescription() }}</p>
 
-      <!-- UNIR PDFs -->
       <div *ngIf="config.action === 'merge'" class="form-section">
         <div class="info-box">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,40 +17,32 @@
         </div>
       </div>
 
-      <!-- DIVIDIR PDF -->
-      <div *ngIf="config.action === 'split'">
-  <p>Puedes agregar múltiples rangos, cada uno será un PDF.</p>
+      <div *ngIf="config.action === 'split'" class="split-section">
+        <p class="split-hint">Puedes agregar múltiples rangos, cada uno será un PDF.</p>
+          <div
+            *ngFor="let r of splitRanges; let i = index; trackBy: trackByIndex"
+            class="range-box improved-range-box">
+            <div class="range-header">
+              <label class="range-title">Rango {{ i + 1 }}</label>
+              <button
+                class="range-remove-btn"
+                *ngIf="splitRanges.length > 1"
+                (click)="removeRange(i)">
+                ✕
+              </button>
+            </div>
+            <input
+              type="text"
+              class="range-input"
+              [(ngModel)]="splitRanges[i]"
+              placeholder="Ej: 1-3,5"
+            />
+          </div>
+          <button class="btn-add-range" (click)="addRange()">
+            Añadir otro rango
+          </button>
+        </div>
 
-  <div
-    *ngFor="let r of splitRanges; let i = index; trackBy: trackByIndex"
-    class="range-box">
-
-    <label>Rango {{ i + 1 }}</label>
-
-    <div class="range-row">
-      <input
-        type="text"
-        class="form-control"
-        [(ngModel)]="splitRanges[i]"
-        placeholder="Ej: 1-3,5"
-      />
-
-      <button
-        class="btn btn-danger"
-        *ngIf="splitRanges.length > 1"
-        (click)="removeRange(i)">
-        Eliminar
-      </button>
-    </div>
-
-  </div>
-
-  <button class="btn btn-secondary mt-2" (click)="addRange()">
-    ➕ Añadir otro rango
-  </button>
-</div>
-
-      <!-- ROTAR PÁGINAS -->
       <div *ngIf="config.action === 'rotate'" class="form-section">
         <label class="form-label">
           Páginas a rotar (Total: {{ config.totalPages }})
@@ -60,7 +50,7 @@
         <input
           type="text"
           [(ngModel)]="pageRangeInput"
-          placeholder="Ej: 1-3,5,7-9 o dejar vacío para todas"
+          placeholder="Ej: 1-3,5,7-9 "
           class="form-input"
         />
         <small class="form-hint">Vacío = todas las páginas</small>
@@ -82,7 +72,6 @@
         </div>
       </div>
 
-      <!-- ELIMINAR PÁGINAS -->
       <div *ngIf="config.action === 'delete'" class="form-section">
         <div class="checkbox-header">
           <label class="form-label">
@@ -106,7 +95,6 @@
         </div>
       </div>
 
-        <!-- REORGANIZAR -->
         <div *ngIf="config.action === 'reorder'" class="form-section">
         <div
             cdkDropList
@@ -124,7 +112,6 @@
         </div>
     </div>
 
-      <!-- ERROR -->
       <div *ngIf="errorMessage" class="error-message">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

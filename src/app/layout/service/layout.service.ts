@@ -97,7 +97,6 @@ export class LayoutService {
             this.handleDarkModeTransition(config);
         });
 
-        // this.applyCustomTheme();
     }
 
     private handleDarkModeTransition(config: layoutConfig): void {

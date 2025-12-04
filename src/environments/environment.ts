@@ -4,8 +4,7 @@ export const environment = {
   apiUrlAutenticacionIdSesion: 'https://devapps.emergiacc.com/ApiRestCandidatoPrueba/api/Login/AuthenticateByIdSesion',
   apiUrlAutenticacionAD: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/LoginFT?IdiomaNavegador=ES&Sistema=CANS',
   apiUrlDominio: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/GetDomainsActiveDirectoryFromJsonAsync',
-  apiUrlArquitecturaPuestos: 'https://devapps.emergiacc.com/ApiRestArquitecturaPuestos/api/v1',
-  apiUrlUpload: 'https://devapps.emergiacc.com/EditorPdfApiRest/api/v1',
-  apiUrlConvertidor:'https://devapps.emergiacc.com/EditorPdfApiRest/api/v1/convertir',
-  apiUrlEditor:'https://devapps.emergiacc.com/EditorPdfApiRest/api/v1/herramientas/pdf',
+  apiUrlUpload: 'https://devapps.emergiacc.com/EditorPdfApiRest/api/v1/pdf-file',
+  apiUrlConvertidor:'https://devapps.emergiacc.com/EditorPdfApiRest/convertir',
+  apiUrlEditor:'https://devapps.emergiacc.com/EditorPdfApiRest/herramientas/pdf',
 };

@@ -16,19 +16,14 @@ export class UsuarioService {
 
   public get(url: string, loader = true) {
 
-    // Se llama el proceso que carga el loading.
     if (loader) $("#ProcesoAjax").show();
 
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
-
-    // Se ejecuta el llamado a la api.
     return this.http.get(url, { headers }).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!respuesta.successfulResult) {
           return respuesta.mensaje;
         }
@@ -37,9 +32,7 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
         $("#ProcesoAjax").hide();
-        console.log(err);
 
         return of({ successfulResult: false, error: err });
       })
@@ -55,12 +48,9 @@ export class UsuarioService {
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
 
-    // Se llama el proceso que carga el loading.
     return this.http.post(url, data, { headers }).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!respuesta.successfulResult) {
           return respuesta;
         }
@@ -69,8 +59,7 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
-        console.error(err);
+
         $("#ProcesoAjax").hide();
         return of({ successfulResult: false, error: err });
       })
@@ -98,7 +87,6 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        console.error(err);
         if (loader) $("#ProcesoAjax").hide();
         return of({ successfulResult: false, error: err });
       })
@@ -106,18 +94,13 @@ export class UsuarioService {
   }
 
 
-
-  // Método post sin headers
   public postV2(url: string, data: any, loader = true) {
 
     if (loader) $("#ProcesoAjax").show();
 
-    // Se llama el proceso que carga el loading.
     return this.http.post(url, data).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!respuesta.successfulResult) {
           return respuesta;
         }
@@ -126,8 +109,6 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
-        console.error(err);
         $("#ProcesoAjax").hide();
         return of({ successfulResult: false, error: err });
       })
@@ -143,12 +124,9 @@ export class UsuarioService {
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
 
-    // Se llama el proceso que carga el loading.
     return this.http.put(url, data, { headers }).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!respuesta.successfulResult) {
           return respuesta;
         }
@@ -157,16 +135,12 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
-        console.error(err);
         $("#ProcesoAjax").hide();
         return of({ successfulResult: false, error: err });
       })
     );
   }
 
-
-  // Método put sin data, parametro en la url
   public putV2(url: string, loader = true) {
 
     if (loader) $("#ProcesoAjax").show();
@@ -175,12 +149,9 @@ export class UsuarioService {
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
 
-    // Se llama el proceso que carga el loading.
     return this.http.put(url, { headers }).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!respuesta.successfulResult) {
           return respuesta;
         }
@@ -189,8 +160,6 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
-        console.error(err);
         $("#ProcesoAjax").hide();
         return of({ successfulResult: false, error: err });
       })
@@ -206,12 +175,9 @@ export class UsuarioService {
       'Authorization': `Bearer ${sessionStorage.getItem('token')}`
     });
 
-    // Se llama el proceso que carga el loading.
     return this.http.delete(url, { headers }).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!respuesta.successfulResult) {
           return respuesta;
         }
@@ -220,8 +186,6 @@ export class UsuarioService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
-        console.error(err);
         $("#ProcesoAjax").hide();
         return of({ successfulResult: false, error: err });
       })

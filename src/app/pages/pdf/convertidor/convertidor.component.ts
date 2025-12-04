@@ -36,10 +36,7 @@ export class ConvertidorComponent implements OnChanges {
       return;
     }
 
-    console.log("📄 Archivo recibido en convertidor:", this.file);
-
     if (!(this.file as any).file) {
-      console.warn("⚠️ Advertencia: el archivo recibido NO contiene el File real.");
     }
   }
 
@@ -71,15 +68,13 @@ export class ConvertidorComponent implements OnChanges {
   }
 
   convertFile() {
-  console.log("✔ Archivo recibido para convertir:", this.file);
-  console.log("✔ Formato seleccionado:", this.selectedFormat);
 
   if (!this.file || !this.selectedFormat) {
     this.errorMessage = '⚠️ Archivo o formato no válido.';
     return;
   }
 
-  // Ya no necesitas el File real, solo el ID
+
   if (!this.file.id) {
     this.errorMessage = '❌ No se encontró el ID del archivo.';
     return;
@@ -95,9 +90,9 @@ export class ConvertidorComponent implements OnChanges {
     }
   }, 300);
 
-  // Enviar el ID del archivo en lugar del File
+
   const body = {
-    file_id: this.file.id,  // ID del archivo en memoria
+    file_id: this.file.id,  
     tipo: this.selectedFormat
   };
 
@@ -108,7 +103,7 @@ export class ConvertidorComponent implements OnChanges {
 
   this.http.post(
     `${environment.apiUrlConvertidor}/convertir`, 
-    body,  // JSON en lugar de FormData
+    body, 
     { headers, responseType: 'blob' }
   ).subscribe({
     next: (response: Blob) => {
@@ -135,7 +130,6 @@ export class ConvertidorComponent implements OnChanges {
 
     error: (err) => {
       clearInterval(progressInterval);
-      console.error('❌ Error en la conversión:', err);
       this.errorMessage = '❌ Error al convertir el archivo.';
       this.processing = false;
       this.conversionProgress = 0;

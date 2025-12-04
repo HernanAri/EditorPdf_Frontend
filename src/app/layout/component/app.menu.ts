@@ -34,7 +34,7 @@ export class AppMenu {
                         label: 'Editar PDFs', 
                         icon: 'pi pi-fw pi-pencil', 
                         command: () => {
-                            // Navegar al workflow y activar modo editor
+
                             this.router.navigate(['/pdf/workflow'], { 
                                 queryParams: { tool: 'editor' } 
                             });
@@ -44,7 +44,7 @@ export class AppMenu {
                         label: 'Convertir PDFs', 
                         icon: 'pi pi-fw pi-sync', 
                         command: () => {
-                            // Navegar al workflow y activar modo convertidor
+
                             this.router.navigate(['/pdf/workflow'], { 
                                 queryParams: { tool: 'convertidor' } 
                             });

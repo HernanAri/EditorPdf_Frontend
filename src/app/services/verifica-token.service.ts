@@ -32,12 +32,10 @@ export class VerificatokenService {
 
     const expirado = this.tokenExpirado(exp);
     if (expirado) {
-      // TOKEN EXPIRO
       this.router.navigate(['/login']);
       return false;
     }
 
-    // TOKEN NO EXPIRADO: ¿NECESITA RENOVACIÓN?
     return this.verificarRenovacion(exp);
   }
 
@@ -49,13 +47,11 @@ export class VerificatokenService {
 
       const diffMin = tokenExp.diff(ahora, 'minutes');
 
-      // Si faltan más de 5 minutos → todo bien
       if (diffMin > 5) {
         resolve(true);
         return;
       }
 
-      // Si faltan <= 5 minutos → RENOVAR TOKEN
       this.renovarToken().subscribe({
         next: () => resolve(true),
         error: () => {
@@ -82,7 +78,6 @@ export class VerificatokenService {
       map((resp: any) => {
         const nuevoToken = resp.NuevoToken;
         sessionStorage.setItem('token', nuevoToken);
-        console.log('%cTOKEN RENOVADO', 'color: green; font-weight: bold;');
         return true;
       })
     );
