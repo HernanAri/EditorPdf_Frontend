@@ -11,7 +11,6 @@ import { environment } from '../../../../environments/environment';
 import { SelectModule } from 'primeng/select';
 import { ToolsService } from '../../../services/general/tools/tools.service';
 import { AuthService } from '../../../services/auth.service';
-import { PERMISOS } from '../../../consts/permisos.conts';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -81,7 +80,7 @@ export class LoginComponent implements OnInit {
 
       this._authService.login(userLogin)
         .subscribe((respuesta: any) => {
-
+          console.log(respuesta);
           if (respuesta.ResultadoExitoso || respuesta.Token) {
             
               this._router.navigate(['/pdf/upload']);
