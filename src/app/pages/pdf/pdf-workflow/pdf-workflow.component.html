@@ -1,4 +1,6 @@
-<app-upload (fileUploaded)="onFilesUploaded($event)"></app-upload>
+<app-upload (fileUploaded)="onFilesUploaded($event)"
+(fileSelected)="onFileSelected($event)"
+[file]="uploadedFiles"></app-upload>
 
 <div *ngIf="uploadedFiles.length > 0">
 

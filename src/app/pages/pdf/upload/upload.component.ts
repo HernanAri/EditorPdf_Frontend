@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpEvent, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { CommonModule } from '@angular/common';
@@ -20,10 +20,14 @@ export interface PdfFile {
   imports: [CommonModule]
 })
 export class UploadComponent {
-
+  @Input() file: PdfFile[] = [];
   @Output() fileUploaded = new EventEmitter<PdfFile[]>();
+  @Output() fileSelected = new EventEmitter<any>();
+
+  
 
   selectedFiles: File [] = [];
+  activeFile: PdfFile | null = null;
   uploading = false;
   errorMessage = '';
   uploadProgress = 0;
@@ -51,6 +55,11 @@ export class UploadComponent {
       }
     }
   }
+
+
+  onSelectFile(pdf: any, index: number) {
+  this.fileSelected.emit(pdf);
+}
 
   removeFile(index: number) {
     this.selectedFiles.splice(index, 1);
@@ -86,7 +95,6 @@ export class UploadComponent {
         if (event.type === HttpEventType.Response) {
           const uploadedFiles: PdfFile[] = [];
 
-          // ✅ Verificar que la respuesta tenga la estructura esperada
           if (!event.body?.data?.archivos_guardados) {
             this.errorMessage = '❌ Respuesta del servidor inválida';
             this.uploading = false;
@@ -99,7 +107,7 @@ export class UploadComponent {
               name: saved.filename || '',
               pages: 0,
               size: saved.size || 0,
-              tempPath: '', // No se usa porque está en memoria
+              tempPath: '', 
               file: this.selectedFiles[i]
             });
           });

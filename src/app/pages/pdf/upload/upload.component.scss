@@ -345,7 +345,6 @@
   }
 }
 
-// Responsive
 @media (max-width: 640px) {
   .upload-container {
     padding: 1rem;
@@ -370,5 +369,10 @@
     .confirm-btn, .cancel-btn {
       width: 100%;
     }
+  }
+
+  .uploaded-label {
+    font-size: 0.8rem;
+    color: rgb(119,61,189,0.8);
   }
 }

@@ -46,7 +46,7 @@ export class AuthService {
         map((respuesta: any) => {
           $("#ProcesoAjax").hide();
           if (respuesta) {
-            // Se valida a donde se hace la petición, ya que el objeto de respuesta cambia.
+           
             if (url.includes('ActiveDirectory')) {
               return respuesta.Datos;
             }
@@ -95,18 +95,13 @@ export class AuthService {
 
 
   public getV2(url: string, loader = true) {
-
-    // Se llama el proceso que carga el loading.
     if (loader) $("#ProcesoAjax").show();
 
-    // Se ejecuta el llamado a la api.
     return this.http.get(url).pipe(
       map((respuesta: any) => {
-        // Se llama al proceso que cierra el loading.
         if (loader) $("#ProcesoAjax").hide();
 
         const exitoso = respuesta.resultadoExitoso ?? respuesta.ResultadoExitoso;
-        // Se maneja el mensaje en caso de que no sea exitosa la respuesta.
         if (!exitoso) {
           return respuesta.mensaje;
         }
@@ -115,9 +110,7 @@ export class AuthService {
         }
       }),
       catchError((err) => {
-        // Manejo del error.
         $("#ProcesoAjax").hide();
-        console.log(err);
 
         return of({ resultadoExitoso: false, error: err });
       })

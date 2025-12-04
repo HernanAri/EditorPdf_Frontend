@@ -68,7 +68,19 @@
       <span class="format-badge">PDF</span>
       <span class="format-info">Tamaño máximo por archivo: 10 MB</span>
     </div>
+    <div *ngIf="file.length > 0" class="format-label">
+    <div class="supported-formats">
+      <span class="uploaded-label">Archivos subidos:</span>
+      <span class="format-info" 
+            *ngFor="let f of file; let i = index"
+            (click)="onSelectFile(f, i)">
+        {{ f.name }} ({{ (f.size || 0) / 1024 | number:'1.0-0' }} KB)
+      </span>
+    </div>
   </div>
+</div>
+  
+
 
   <!-- Error -->
   <div class="alert error" *ngIf="errorMessage">

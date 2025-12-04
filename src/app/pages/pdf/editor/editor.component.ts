@@ -44,12 +44,11 @@ export class EditorComponent implements OnChanges, OnDestroy {
   processing = false;
   loadingPreview = false;
 
-  // Modal
+
   showModal = false;
   modalConfig: ModalConfig | null = null;
 
-  private blobUrls: string[] = []; // Para rastrear todos los blob URLs creados
-
+  private blobUrls: string[] = []; 
   constructor(
     private http: HttpClient,
     private sanitizer: DomSanitizer
@@ -60,19 +59,18 @@ export class EditorComponent implements OnChanges, OnDestroy {
       this.clearMessages();
 
       try {
-        // Calcular páginas si no están definidas
+        
         if (!this.file.pages || this.file.pages === 0) {
           await this.calculatePages();
         }
 
-        // Cargar preview si tiene ID
+
         if (this.file.id) {
           this.loadPdfPreview(this.file.id);
         }
       } catch (err) {
-        console.error('❌ Error al procesar archivo', err);
         this.errorMessage = 'No se pudo procesar el archivo';
-        // Asignar valor por defecto
+ 
         if (this.file) {
           this.file.pages = 1;
         }
@@ -82,48 +80,34 @@ export class EditorComponent implements OnChanges, OnDestroy {
 
   private async calculatePages(): Promise<void> {
     if (!this.file) {
-      console.log('⚠️ No hay archivo para calcular páginas');
+
       return;
     }
 
-    console.log('🔍 Iniciando cálculo de páginas para:', this.file.name);
-    console.log('📋 Datos del archivo:', {
-      hasFile: !!this.file.file,
-      hasId: !!this.file.id,
-      currentPages: this.file.pages
-    });
-
     try {
-      // Caso 1: Archivo desde input local (File object)
+ 
       if (this.file.file) {
-        console.log('📁 Procesando archivo local...');
         const pageCount = await this.getPdfPageCount(this.file.file);
         this.file.pages = pageCount;
-        console.log(`✅ Páginas calculadas (archivo local): ${pageCount}`);
         return;
       }
 
-      // Caso 2: Archivo desde servidor (por ID)
+    
       if (this.file.id) {
-        console.log('🌐 Descargando archivo del servidor...');
         const blob = await this.fetchFileBlob(this.file.id);
-        console.log('📦 Blob recibido, tamaño:', blob.size, 'tipo:', blob.type);
         const pageCount = await this.getTotalPages(blob);
         this.file.pages = pageCount;
-        console.log(`✅ Páginas calculadas (servidor): ${pageCount}`);
         return;
       }
 
-      // Si no hay ni file ni id, usar valor por defecto
-      console.warn('⚠️ No se encontró ni File ni ID, usando valor por defecto');
+
       this.file.pages = 1;
     } catch (err) {
-      console.error('❌ Error detallado al calcular páginas:', err);
       if (err instanceof Error) {
         console.error('  Mensaje:', err.message);
         console.error('  Stack:', err.stack);
       }
-      this.file.pages = 1; // Valor por defecto en caso de error
+      this.file.pages = 1; 
       this.errorMessage = 'No se pudo calcular el número de páginas del PDF';
     }
   }
@@ -155,18 +139,17 @@ export class EditorComponent implements OnChanges, OnDestroy {
       })
       .subscribe({
         next: (blob: Blob) => {
-          // Limpiar preview anterior
+         
           this.revokeCurrentPreview();
           
-          // Crear nuevo blob URL
+          
           const url = URL.createObjectURL(blob);
-          this.blobUrls.push(url); // Rastrear para limpieza posterior
+          this.blobUrls.push(url); 
           this.currentBlobUrl = url;
           this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
           this.loadingPreview = false;
         },
         error: (err) => {
-          console.error('❌ Error al cargar preview:', err);
           this.errorMessage = '❌ No se pudo cargar la vista previa';
           this.loadingPreview = false;
         }
@@ -181,7 +164,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Limpiar todos los blob URLs creados
+   
     this.blobUrls.forEach(url => URL.revokeObjectURL(url));
     this.blobUrls = [];
     
@@ -227,33 +210,25 @@ export class EditorComponent implements OnChanges, OnDestroy {
           this.downloadBlob(blob, this.file?.name || 'archivo.pdf');
         },
         error: (err) => {
-          console.error('❌ Error al descargar:', err);
           this.errorMessage = '❌ Error al descargar el archivo';
         }
       });
   }
 
   private async getPdfPageCount(file: File): Promise<number> {
-    console.log('📖 Leyendo archivo:', file.name, 'Tamaño:', file.size);
     
     try {
       const arrayBuffer = await file.arrayBuffer();
-      console.log('✅ ArrayBuffer obtenido, tamaño:', arrayBuffer.byteLength);
       
       const loadingTask = pdfjsLib.getDocument({ 
         data: arrayBuffer,
-        verbosity: 0 // Reducir logs de pdf.js
+        verbosity: 0 
       });
-      
-      console.log('⏳ Cargando documento PDF...');
+
       const pdf = await loadingTask.promise;
-      
-      console.log('✅ PDF cargado exitosamente');
-      console.log('📄 Número de páginas:', pdf.numPages);
       
       return pdf.numPages;
     } catch (error) {
-      console.error('❌ Error detallado en getPdfPageCount:', error);
       if (error instanceof Error) {
         console.error('  Tipo de error:', error.name);
         console.error('  Mensaje:', error.message);
@@ -264,22 +239,17 @@ export class EditorComponent implements OnChanges, OnDestroy {
   }
 
   private async getTotalPages(blob: Blob): Promise<number> {
-    console.log('📦 Procesando blob:', blob.size, 'bytes, tipo:', blob.type);
     
     try {
       const arrayBuffer = await blob.arrayBuffer();
-      console.log('✅ ArrayBuffer del blob obtenido, tamaño:', arrayBuffer.byteLength);
       
       const loadingTask = pdfjsLib.getDocument({ 
         data: arrayBuffer,
         verbosity: 0
       });
-      
-      console.log('⏳ Cargando documento PDF desde blob...');
+
       const pdfDoc: PDFDocumentProxy = await loadingTask.promise;
-      
-      console.log('✅ PDF cargado exitosamente desde blob');
-      console.log('📄 Número de páginas:', pdfDoc.numPages);
+
       
       return pdfDoc.numPages;
     } catch (error) {
@@ -292,7 +262,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
     }
   }
 
-  // ==================== ABRIR MODALES ====================
 
   openMergeModal(): void {
     if (this.allFiles.length < 2) {
@@ -348,7 +317,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
 
     const totalPages = this.file.pages && this.file.pages > 0 ? this.file.pages : 1;
 
-    console.log('🔍 Abriendo modal eliminar - Total páginas:', totalPages);
 
     this.modalConfig = {
       action: 'delete',
@@ -374,14 +342,10 @@ export class EditorComponent implements OnChanges, OnDestroy {
     this.showModal = true;
   }
 
-  // ==================== MANEJAR CONFIRMACIÓN DEL MODAL ====================
 
   onModalConfirm(result: ModalResult): void {
     this.showModal = false;
     this.clearMessages();
-
-    console.log('✅ Modal confirmado:', result);
-    console.log('📋 Data recibida:', JSON.stringify(result.data, null, 2));
 
     switch (result.action) {
       case 'merge':
@@ -411,12 +375,10 @@ export class EditorComponent implements OnChanges, OnDestroy {
     this.showModal = false;
   }
 
-  // ==================== EJECUTAR OPERACIONES ====================
-
   private executeMerge(): void {
     this.processing = true;
 
-    const fileIds = this.allFiles.map(f => f.id).filter(id => id); // Filtrar IDs nulos
+    const fileIds = this.allFiles.map(f => f.id).filter(id => id);  
     
     if (fileIds.length < 2) {
       this.errorMessage = 'No hay suficientes archivos con ID para unir';
@@ -487,7 +449,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
 
     this.processing = true;
 
-    // Si no se especificaron páginas, rotar todas
     const pagesToRotate = pages.length > 0 
       ? pages 
       : Array.from({ length: this.file.pages! }, (_, i) => i + 1);
@@ -526,19 +487,14 @@ export class EditorComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    console.log('🗑️ Páginas a eliminar (input):', pagesToDelete);
-
     this.processing = true;
 
-    // Convertir a base 0 (restar 1 a cada página)
     const paginasBase0 = pagesToDelete.map(p => p - 1);
 
     const payload = {
       archivo_id: this.file.id,
       paginas: paginasBase0
     };
-
-    console.log('📤 Payload final:', JSON.stringify(payload, null, 2));
 
     const headers = this.getAuthHeaders();
 
@@ -549,7 +505,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
       )
       .subscribe({
         next: (blob: Blob) => {
-          console.log('✅ Respuesta recibida, tamaño:', blob.size);
           this.downloadBlob(blob, this.file?.name || 'archivo_editado.pdf');
           this.updatePreview(blob);
           this.successMessage = `✅ ${pagesToDelete.length} página(s) eliminada(s) correctamente`;
@@ -598,7 +553,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
       });
   }
 
-  // ==================== UTILIDADES ====================
+ 
 
   private getAuthHeaders(): HttpHeaders {
     return new HttpHeaders({
@@ -617,10 +572,9 @@ export class EditorComponent implements OnChanges, OnDestroy {
   }
 
   private updatePreview(blob: Blob): void {
-    // Limpiar preview anterior
+
     this.revokeCurrentPreview();
     
-    // Crear nuevo preview
     const url = URL.createObjectURL(blob);
     this.blobUrls.push(url);
     this.currentBlobUrl = url;

@@ -29,7 +29,6 @@ export class PdfModalComponent implements OnInit {
   @Output() confirm = new EventEmitter<ModalResult>();
   @Output() cancel = new EventEmitter<void>();
 
-  // Campos del formulario
   pageRangeInput: string = '';
   rotationDegrees: number = 90;
   newOrder: string = '';
@@ -37,7 +36,6 @@ export class PdfModalComponent implements OnInit {
   totalPagesArray: number[] = [];
   reorderPages: number[] = [];
 
-  // UI
   errorMessage: string = '';
 i: any;
 
@@ -48,17 +46,15 @@ i: any;
         (_, i) => i + 1
       );
 
-      // Inicializar todos los checkboxes como seleccionados
       this.selectedPages = {};
       this.totalPagesArray.forEach(p => (this.selectedPages[p] = true));
     }
 
-    // Valores por defecto según la acción
     if (this.config.action === 'reorder' && this.config.totalPages > 0) {
       this.newOrder = this.totalPagesArray.join(',');
     }
     if (this.config.action === 'reorder') {
-    this.reorderPages = [...this.totalPagesArray]; // copia del array de páginas
+    this.reorderPages = [...this.totalPagesArray]; 
 }
   }
 
@@ -137,15 +133,12 @@ i: any;
 
         case 'delete':
           const pagesToKeep = Object.entries(this.selectedPages)
-            .filter(([_, checked]) => checked) // Páginas MARCADAS = mantener
+            .filter(([_, checked]) => checked)
             .map(([page]) => Number(page));
 
           const pagesToDelete = Object.entries(this.selectedPages)
-            .filter(([_, checked]) => !checked) // Páginas DESMARCADAS = eliminar
+            .filter(([_, checked]) => !checked) 
             .map(([page]) => Number(page));
-
-          console.log('🔍 Modal - Páginas a mantener:', pagesToKeep);
-          console.log('🔍 Modal - Páginas a eliminar:', pagesToDelete);
 
           if (pagesToDelete.length === 0) {
             this.errorMessage = 'Desmarca al menos una página para eliminar';
@@ -164,8 +157,6 @@ i: any;
               pagesToKeep: pagesToKeep
             }
           };
-
-          console.log('📤 Modal enviando resultado:', result);
           break;
 
         case 'reorder':
@@ -244,7 +235,7 @@ i: any;
     return Object.values(this.selectedPages).filter(v => v).length;
   }
 
-  // CAMPOS NUEVOS PARA MULTI-RANGOS
+ 
 splitRanges: string[] = [''];
 
 addRange() {

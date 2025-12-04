@@ -71,12 +71,11 @@ export class LoginComponent implements OnInit {
 
       if (!this.usuario && !this.password) { return; }
 
-      /* Se valida que si se esta ingresando por AD sea requerido el dominio. */
       if (this.checkIsLoginAD && !this.domain) {
         this._messageService.add({ severity: 'warn', summary: '', detail: 'Selecciona un dominio' });
         return;
       }
-      // Se valida si viene definido el dominio para encriptarlo.
+
       if (this.checkIsLoginAD) { this.domain = this._toolsService.encrypt(this.domain); }
       let userLogin: any = { 'Domain': this.domain, 'Login': this._toolsService.encrypt(this.usuario), 'Password': this._toolsService.encrypt(this.password), 'CheckIsLoginAD': this.checkIsLoginAD }
 

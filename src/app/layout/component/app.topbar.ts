@@ -65,11 +65,10 @@ export class AppTopbar {
     ) { }
 
     toggleDarkMode() {
-        // this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
+   
         this.layoutService.layoutConfig.update((state) => {
             const updated = { ...state, darkTheme: !state.darkTheme };
 
-            // Guardar en localStorage
             localStorage.setItem('layoutConfig', JSON.stringify(updated));
 
             return updated;
