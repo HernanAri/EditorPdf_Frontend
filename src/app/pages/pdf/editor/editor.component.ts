@@ -396,7 +396,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, 'pdf_unido.pdf');
-          this.successMessage = '✅ PDFs unidos correctamente';
+          this.successMessage = ' PDFs unidos correctamente';
           this.processing = false;
         },
         error: err => {
@@ -430,7 +430,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
       .subscribe({
         next: (blob: Blob) => {
           this.downloadBlob(blob, 'resultado.zip');
-          this.successMessage = '✅ PDF dividido correctamente';
+          this.successMessage = ' PDF dividido correctamente';
           this.processing = false;
         },
         error: err => {
@@ -470,12 +470,12 @@ export class EditorComponent implements OnChanges, OnDestroy {
         next: (blob: Blob) => {
           this.downloadBlob(blob, this.file?.name || 'archivo_rotado.pdf');
           this.updatePreview(blob);
-          this.successMessage = '✅ Páginas rotadas correctamente';
+          this.successMessage = ' Páginas rotadas correctamente';
           this.processing = false;
         },
         error: err => {
           console.error('Error al rotar:', err);
-          this.errorMessage = '❌ Error al rotar páginas';
+          this.errorMessage = ' Error al rotar páginas';
           this.processing = false;
         }
       });
