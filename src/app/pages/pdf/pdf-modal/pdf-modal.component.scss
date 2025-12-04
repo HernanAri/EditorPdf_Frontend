@@ -238,7 +238,7 @@
 
   &.checked {
     border-color: rgb(224,89,42,1);
-    background: rgb(224,89,42,0.8);
+    background: rgba(239, 89,  89, 0.8);
 
     span {
       color: white;
@@ -328,6 +328,7 @@
   }
 }
 
+
 @media (max-width: 640px) {
   .modal-container {
     width: 95%;
@@ -343,48 +344,64 @@
   }
 }
 
-.split-container {
+.split-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 }
-
-.range-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.range-box {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+  transition: box-shadow 0.2s ease;
 }
-
-.range-item {
+.range-box:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.range-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  margin-bottom: 0.5rem;
 }
-
-.range-input {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #888;
+.range-title {
+  font-weight: 600;
+  color: #1f2937;
 }
-
-.btn-add-range {
-  background: #2196f3;
-  color: white;
-  padding: 6px 12px;
+.range-remove-btn {
+  background: #fee2e2;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-remove-range {
-  background: #e74c3c;
-  color: white;
-  border: none;
+  color: #b91c1c;
+  border-radius: 8px;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  font-size: 1rem;
   cursor: pointer;
+}
+.range-remove-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+.range-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.btn-add-range {
+  background: rgba(224, 89, 42, 0.8);
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.btn-add-range:hover {
+  background: rgba(224, 89, 42, 1);
 }
 
 .hint {
@@ -401,9 +418,9 @@
 }
 
 .page-box {
-  width: 70px;
-  height: 70px;
-  background: #2d2d2d;
+  width: 60px;
+  height: 40px;
+  background: rgba(224, 89, 42, 0.8);
   border-radius: 8px;
   color: white;
   display: flex;
