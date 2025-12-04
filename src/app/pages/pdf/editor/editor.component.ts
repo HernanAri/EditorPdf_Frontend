@@ -265,7 +265,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
 
   openMergeModal(): void {
     if (this.allFiles.length < 2) {
-      this.errorMessage = '⚠️ Se necesitan al menos 2 archivos para unir';
+      this.errorMessage = 'Se necesitan al menos 2 archivos para unir';
       return;
     }
 
