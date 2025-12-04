@@ -7,7 +7,6 @@
 
     <div class="modal-body">
 
-      <!-- UNIR PDFs -->
       <div *ngIf="config.action === 'merge'" class="form-section">
         <div class="info-box">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -18,7 +17,6 @@
         </div>
       </div>
 
-      <!-- DIVIDIR PDF -->
       <div *ngIf="config.action === 'split'" class="split-section">
         <p class="split-hint">Puedes agregar múltiples rangos, cada uno será un PDF.</p>
           <div
@@ -45,7 +43,6 @@
           </button>
         </div>
 
-      <!-- ROTAR PÁGINAS -->
       <div *ngIf="config.action === 'rotate'" class="form-section">
         <label class="form-label">
           Páginas a rotar (Total: {{ config.totalPages }})
@@ -75,7 +72,6 @@
         </div>
       </div>
 
-      <!-- ELIMINAR PÁGINAS -->
       <div *ngIf="config.action === 'delete'" class="form-section">
         <div class="checkbox-header">
           <label class="form-label">
@@ -99,7 +95,6 @@
         </div>
       </div>
 
-        <!-- REORGANIZAR -->
         <div *ngIf="config.action === 'reorder'" class="form-section">
         <div
             cdkDropList
@@ -117,7 +112,6 @@
         </div>
     </div>
 
-      <!-- ERROR -->
       <div *ngIf="errorMessage" class="error-message">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

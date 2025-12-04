@@ -1,7 +1,6 @@
 <div class="upload-container">
   <div class="upload-wrapper">
 
-    <!-- Caja de carga -->
     <div class="upload-box"
          (click)="fileInput.click()"
          [class.uploading]="uploading">
@@ -18,7 +17,7 @@
       <h3>{{ uploading ? 'Subiendo archivos...' : 'Sube tus archivos PDF' }}</h3>
       <p *ngIf="selectedFiles.length === 0">Arrastra o haz clic para seleccionar varios PDFs</p>
 
-      <!-- Lista de archivos seleccionados -->
+
       <div class="multiple-files" *ngIf="selectedFiles.length > 0 && !uploading">
         <div class="file-row" *ngFor="let file of selectedFiles; let i = index">
           <div class="file-icon">📄</div>
@@ -34,17 +33,13 @@
         </div>
       </div>
 
-      <!-- Progreso -->
       <div class="progress-bar" *ngIf="uploading">
         <div class="progress-fill" [style.width.%]="uploadProgress"></div>
       </div>
 
-      <!-- Botón para seleccionar más archivos -->
       <button class="upload-btn" [disabled]="uploading" *ngIf="selectedFiles.length === 0">
         Seleccionar archivos
       </button>
-
-      <!-- Botón de subir todo -->
       <div class="action-buttons" *ngIf="selectedFiles.length > 0 && !uploading">
         <button class="confirm-btn" (click)="uploadFile(); $event.stopPropagation()">
           Subir {{ selectedFiles.length }} PDF(s)
@@ -85,9 +80,6 @@
   </div>
 </div>
   
-
-
-  <!-- Error -->
   <div class="alert error" *ngIf="errorMessage">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
