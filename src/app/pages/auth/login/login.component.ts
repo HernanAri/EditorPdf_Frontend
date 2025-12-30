@@ -11,6 +11,7 @@ import { environment } from '../../../../environments/environment';
 import { SelectModule } from 'primeng/select';
 import { ToolsService } from '../../../services/general/tools/tools.service';
 import { AuthService } from '../../../services/auth.service';
+import { PERMISOS } from '../../../consts/permisos.conts';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -80,29 +81,19 @@ export class LoginComponent implements OnInit {
 
       this._authService.login(userLogin)
         .subscribe((respuesta: any) => {
-          console.log(respuesta);
           if (respuesta.ResultadoExitoso || respuesta.Token) {
-            
               this._router.navigate(['/pdf/upload']);
-            } else {
-              this._messageService.add({ severity: 'error', summary: 'Error', detail: 'El usuario no tiene permisos para ingresar a la aplicación' });
-              sessionStorage.clear();
-            }
-          
-
+            }           
           if (!respuesta.ResultadoExitoso && respuesta?.error?.message) {
             this._messageService.add({ severity: 'error', summary: 'Error', detail: respuesta.error.message });
           }
-
           if (!respuesta?.ResultadoExitoso) {
-            this._messageService.add({ severity: 'error', summary: 'Error', detail: respuesta.VariablesDeUsuarioLogadoDTO.ErrorUsuario });
+            this._messageService.add({ severity: 'error', summary: 'Error', detail: typeof  respuesta == 'string' ? respuesta : respuesta.VariablesDeUsuarioLogadoDTO.ErrorUsuario });
             return;
           }
-
         });
+      }
     }
-  }
-
 
   cargarDominios() {
     if (this.domains.length == 0) {
@@ -116,6 +107,4 @@ export class LoginComponent implements OnInit {
       this.domains = resp.Datos;
     });
   }
-
-
 }

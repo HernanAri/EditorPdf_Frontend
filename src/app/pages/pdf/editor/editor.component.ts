@@ -15,7 +15,6 @@ const configurePdfWorker = () => {
   try {
     pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
   } catch (error) {
-    console.warn('⚠️ Worker local no disponible, usando CDN');
     pdfjsLib.GlobalWorkerOptions.workerSrc = 
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
@@ -44,9 +43,12 @@ export class EditorComponent implements OnChanges, OnDestroy {
   processing = false;
   loadingPreview = false;
 
-
   showModal = false;
   modalConfig: ModalConfig | null = null;
+
+  private modifiedBlob: Blob | null = null;
+  private originalFileId: string | null = null;
+  hasChanges = false;
 
   private blobUrls: string[] = []; 
   constructor(
@@ -58,12 +60,13 @@ export class EditorComponent implements OnChanges, OnDestroy {
     if (changes['file'] && this.file) {
       this.clearMessages();
 
+      this.resetChanges();
+
       try {
         
         if (!this.file.pages || this.file.pages === 0) {
           await this.calculatePages();
         }
-
 
         if (this.file.id) {
           this.loadPdfPreview(this.file.id);
@@ -91,7 +94,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
         this.file.pages = pageCount;
         return;
       }
-
     
       if (this.file.id) {
         const blob = await this.fetchFileBlob(this.file.id);
@@ -99,7 +101,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
         this.file.pages = pageCount;
         return;
       }
-
 
       this.file.pages = 1;
     } catch (err) {
@@ -140,8 +141,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
       .subscribe({
         next: (blob: Blob) => {
          
-          this.revokeCurrentPreview();
-          
+          this.revokeCurrentPreview();      
           
           const url = URL.createObjectURL(blob);
           this.blobUrls.push(url); 
@@ -150,7 +150,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
           this.loadingPreview = false;
         },
         error: (err) => {
-          this.errorMessage = '❌ No se pudo cargar la vista previa';
+          this.errorMessage = ' No se pudo cargar la vista previa';
           this.loadingPreview = false;
         }
       });
@@ -171,11 +171,15 @@ export class EditorComponent implements OnChanges, OnDestroy {
     if (this.currentBlobUrl) {
       URL.revokeObjectURL(this.currentBlobUrl);
     }
+
+    this.modifiedBlob = null;
   }
 
   changePreview(file: PdfFile, index: number): void {
     this.file = file;
     this.selectedFileIndex = index;
+    this.resetChanges();
+
     if (file.id) {
       this.loadPdfPreview(file.id);
     }
@@ -210,9 +214,37 @@ export class EditorComponent implements OnChanges, OnDestroy {
           this.downloadBlob(blob, this.file?.name || 'archivo.pdf');
         },
         error: (err) => {
-          this.errorMessage = '❌ Error al descargar el archivo';
+          this.errorMessage = ' Error al descargar el archivo';
         }
       });
+  }
+
+  downloadModifiedFile(): void {
+    if (!this.modifiedBlob) {
+      this.errorMessage = 'No hay cambios para descargar';
+      return;
+    }
+
+    const filename = this.file?.name
+      ? `${this.file.name.replace(/\.pdf$/i, '')}_modificado.pdf`
+      : 'archivo_modificado.pdf';
+
+    this.downloadBlob(this.modifiedBlob, filename);
+    this.successMessage = ' Archivo descargado correctamente';
+  }
+
+  resetChanges(): void {
+    this.modifiedBlob = null;
+    this.hasChanges = false;
+
+    if (this.file?.id) {
+      this.loadPdfPreview(this.file.id);
+      this.successMessage = 'cambios revertidos';
+
+      setTimeout(() =>{
+        this.clearMessages();
+      }, 3000);
+    }
   }
 
   private async getPdfPageCount(file: File): Promise<number> {
@@ -249,11 +281,10 @@ export class EditorComponent implements OnChanges, OnDestroy {
       });
 
       const pdfDoc: PDFDocumentProxy = await loadingTask.promise;
-
       
       return pdfDoc.numPages;
     } catch (error) {
-      console.error('❌ Error detallado en getTotalPages:', error);
+      console.error(' Error detallado en getTotalPages:', error);
       if (error instanceof Error) {
         console.error('  Tipo de error:', error.name);
         console.error('  Mensaje:', error.message);
@@ -261,7 +292,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
       throw new Error(`No se pudo leer el PDF desde blob: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
-
 
   openMergeModal(): void {
     if (this.allFiles.length < 2) {
@@ -317,7 +347,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
 
     const totalPages = this.file.pages && this.file.pages > 0 ? this.file.pages : 1;
 
-
     this.modalConfig = {
       action: 'delete',
       totalPages: totalPages,
@@ -342,7 +371,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
     this.showModal = true;
   }
 
-
   onModalConfirm(result: ModalResult): void {
     this.showModal = false;
     this.clearMessages();
@@ -359,7 +387,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
         break;
       case 'delete':
         if (!result.data.pagesToDelete || !Array.isArray(result.data.pagesToDelete)) {
-          console.error('❌ pagesToDelete no válido:', result.data);
+          console.error(' pagesToDelete no válido:', result.data);
           this.errorMessage = 'Error: No se recibieron las páginas a eliminar';
           return;
         }
@@ -401,7 +429,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
         },
         error: err => {
           console.error('Error al unir:', err);
-          this.errorMessage = err.error?.detail || '❌ Error al unir los PDFs';
+          this.errorMessage = err.error?.detail || ' Error al unir los PDFs';
           this.processing = false;
         }
       });
@@ -435,64 +463,77 @@ export class EditorComponent implements OnChanges, OnDestroy {
         },
         error: err => {
           console.error('Error al dividir:', err);
-          this.errorMessage = '❌ Error al dividir el PDF';
+          this.errorMessage = ' Error al dividir el PDF';
           this.processing = false;
         }
       });
   }
 
-  private executeRotate(pages: number[], degrees: number): void {
-    if (!this.file?.id) {
-      this.errorMessage = 'No hay archivo seleccionado';
-      return;
-    }
-
+  private async executeRotate(pages: number[], degrees: number): Promise<void> {
+    // if (!this.file?.id) {
+    //   this.errorMessage = 'No hay archivo seleccionado';
+    //   return;
+    // }
     this.processing = true;
+    try {
+      const sourceBlob = this.modifiedBlob ? this.modifiedBlob : await this.fetchFileBlob(this.file!.id!);
 
-    const pagesToRotate = pages.length > 0 
-      ? pages 
-      : Array.from({ length: this.file.pages! }, (_, i) => i + 1);
+      const uploadedFileId = await this.uploadBlobToBackend(sourceBlob);
 
-    const payload = {
-      archivo_id: this.file.id,
-      paginas: pagesToRotate,
-      grados: degrees
-    };
+      const pagesToRotate = pages.length > 0 
+        ? pages 
+        : Array.from({ length: this.file.pages! }, (_, i) => i + 1);
 
-    const headers = this.getAuthHeaders();
+      const payload = {
+        archivo_id: uploadedFileId,
+        paginas: pagesToRotate,
+        grados: degrees
+      };
 
-    this.http
-      .post(`${environment.apiUrlEditor}/rotar`, 
-        payload, 
-        { headers, responseType: 'blob' }
-      )
-      .subscribe({
-        next: (blob: Blob) => {
-          this.downloadBlob(blob, this.file?.name || 'archivo_rotado.pdf');
-          this.updatePreview(blob);
-          this.successMessage = ' Páginas rotadas correctamente';
-          this.processing = false;
-        },
-        error: err => {
-          console.error('Error al rotar:', err);
-          this.errorMessage = ' Error al rotar páginas';
-          this.processing = false;
-        }
-      });
+      const headers = this.getAuthHeaders();
+
+      this.http
+        .post(`${environment.apiUrlEditor}/rotar`, 
+          payload, 
+          { headers, responseType: 'blob' }
+        )
+        .subscribe({
+          next: async(blob: Blob) => {
+            //this.downloadBlob(blob, this.file?.name || 'archivo_rotado.pdf');
+            // this.updatePreview(blob);
+            await this.updatePreviewAndStore(blob);
+            this.successMessage = ' Páginas rotadas correctamente';
+            this.processing = false;
+          },
+          error: err => {
+            console.error('Error al rotar:', err);
+            this.errorMessage = ' Error al rotar páginas';
+            this.processing = false;
+          }
+        });
+    } catch (err) {
+      console.error('Error en executeRotate:', err);
+      this.errorMessage = ' Error inesperado al rotar páginas';
+      this.processing = false;
+    }
   }
 
-  private executeDelete(pagesToDelete: number[]): void {
-    if (!this.file?.id) {
-      this.errorMessage = 'No hay archivo seleccionado';
-      return;
-    }
-
+  private async executeDelete(pagesToDelete: number[]): Promise<void> {
+    // if (!this.file?.id) {
+    //   this.errorMessage = 'No hay archivo seleccionado';
+    //   return;
+    // }
     this.processing = true;
+
+    try {
+      const sourceBlob = this.modifiedBlob ? this.modifiedBlob : await this.fetchFileBlob(this.file!.id!);
+
+      const uploadedFileId = await this.uploadBlobToBackend(sourceBlob);
 
     const paginasBase0 = pagesToDelete.map(p => p - 1);
 
     const payload = {
-      archivo_id: this.file.id,
+      archivo_id: uploadedFileId,
       paginas: paginasBase0
     };
 
@@ -504,30 +545,43 @@ export class EditorComponent implements OnChanges, OnDestroy {
         { headers, responseType: 'blob' }
       )
       .subscribe({
-        next: (blob: Blob) => {
-          this.downloadBlob(blob, this.file?.name || 'archivo_editado.pdf');
-          this.updatePreview(blob);
-          this.successMessage = `✅ ${pagesToDelete.length} página(s) eliminada(s) correctamente`;
+        next: async (blob: Blob) => {
+          //this.downloadBlob(blob, this.file?.name || 'archivo_editado.pdf');
+          await this.updatePreviewAndStore(blob);
+          if (this.file) {
+            const newPageCount = await this.getTotalPages(blob);
+            this.file.pages = newPageCount;
+          }
+          this.successMessage = ` ${pagesToDelete.length} página(s) eliminada(s) correctamente`;
           this.processing = false;
         },
         error: err => {
-          console.error('❌ Error completo:', err);
-          this.errorMessage = err.error?.detail || '❌ Error al eliminar páginas';
+          console.error(' Error completo:', err);
+          this.errorMessage = err.error?.detail || ' Error al eliminar páginas';
           this.processing = false;
         }
       });
+    } catch (err) {
+      console.error('Error en executeDelete:', err);
+      this.errorMessage = ' Error inesperado al eliminar páginas';
+      this.processing = false;
+    }
   }
 
-  private executeReorder(order: number[]): void {
-    if (!this.file?.id) {
-      this.errorMessage = 'No hay archivo seleccionado';
-      return;
-    }
-
+  private async executeReorder(order: number[]): Promise<void> {
+    // if (!this.file?.id) {
+    //   this.errorMessage = 'No hay archivo seleccionado';
+    //   return;
+    // }
     this.processing = true;
 
+    try {
+      const sourceBlob = this.modifiedBlob ? this.modifiedBlob : await this.fetchFileBlob(this.file!.id!);
+
+      const uploadedFileId = await this.uploadBlobToBackend(sourceBlob);
+
     const payload = {
-      archivo_id: this.file.id,
+      archivo_id: uploadedFileId,
       nuevo_orden: order
     };
 
@@ -539,21 +593,68 @@ export class EditorComponent implements OnChanges, OnDestroy {
         { headers, responseType: 'blob' }
       )
       .subscribe({
-        next: (blob: Blob) => {
-          this.downloadBlob(blob, this.file?.name || 'archivo_reorganizado.pdf');
-          this.updatePreview(blob);
-          this.successMessage = '✅ Páginas reorganizadas correctamente';
+        next: async (blob: Blob) => {
+          //this.downloadBlob(blob, this.file?.name || 'archivo_reorganizado.pdf');
+          // this.updatePreview(blob);
+          await this.updatePreviewAndStore(blob);
+          this.successMessage = ' Páginas reorganizadas correctamente';
           this.processing = false;
         },
         error: err => {
           console.error('Error al reorganizar:', err);
-          this.errorMessage = '❌ Error al reorganizar páginas';
+          this.errorMessage = ' Error al reorganizar páginas';
           this.processing = false;
         }
       });
+    } catch (err) {
+      console.error('Error en executeReorder:', err);
+      this.errorMessage = ' Error inesperado al reorganizar páginas';
+      this.processing = false;
+    }
   }
 
- 
+  private async uploadBlobToBackend(blob: Blob): Promise<string> {
+    const formData = new FormData();
+    const file = new File([blob], 'temp.pdf', { type: 'application/pdf' });
+    formData.append('file', file);
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${sessionStorage.getItem('token')}`
+    });
+
+    try {
+      const response = await firstValueFrom(
+        this.http.post<any>(
+          `${environment.apiUrlUpload}/Subir`,
+          formData,
+          { headers }
+        )
+      );
+      if (response?.data?.archivos_guardados?.[0]?.saved_as) {
+        return response.data.archivos_guardados[0].saved_as;
+      }
+      throw new Error('No se recibió un ID de archivo válido del backend');
+    } catch (error) {
+      console.error('Error al subir el archivo:', error);
+      throw new Error('Error al subir el archivo');
+    }
+  }
+
+  private async updatePreviewAndStore(blob: Blob): Promise<void> {
+    if (!this.hasChanges && this.file?.id) {
+      this.originalFileId = this.file.id;
+    }
+
+    this.modifiedBlob = blob;
+    this.hasChanges = true;
+
+    this.revokeCurrentPreview();
+    
+    const url = URL.createObjectURL(blob);
+    this.blobUrls.push(url);
+    this.currentBlobUrl = url;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
 
   private getAuthHeaders(): HttpHeaders {
     return new HttpHeaders({

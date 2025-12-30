@@ -1,7 +1,8 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { catchError, filter, map, of } from 'rxjs';
+import { catchError, filter, map, of, throwError , } from 'rxjs';
+
 
 declare var $: any;
 
@@ -75,6 +76,7 @@ export class AuthService {
             // this._messageService.add({ severity: 'error', summary: 'Error', detail: "Ocurrió un error al realizar la operación, por favor inténtelo de nuevo o comuníquese con el administrador" });
           }
           $("#ProcesoAjax").hide();
+          return throwError(err);
           return of({ error: err.error, ResultadoExitoso: false });
         })
       );

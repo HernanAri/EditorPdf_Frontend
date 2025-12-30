@@ -539,3 +539,91 @@ padding: 1.25rem;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   }
 }
+
+.btn-group {
+  display:grid
+}
+
+/* Contenedor de los botones de acción */
+.preview-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* Estilos base para los botones */
+.btn-download,
+.btn-reset {
+  display: flex;
+  margin: 10px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.btn-download svg,
+.btn-reset svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Botón de descarga */
+.btn-download {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);
+}
+
+.btn-download:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.35);
+}
+
+.btn-download:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Botón de limpiar cambios */
+.btn-reset {
+  background: linear-gradient(90deg, #ff9e18, #e0592a);
+  color: white;
+  box-shadow: 0 4px 6px rgba(245, 87, 108, 0.25);
+}
+
+.btn-reset:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(245, 87, 108, 0.35);
+}
+
+.btn-reset:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Estado deshabilitado */
+.btn-download:disabled,
+.btn-reset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .preview-actions {
+    flex-direction: column;
+  }
+  
+  .btn-download,
+  .btn-reset {
+    width: 100%;
+    justify-content: center;
+  }
+}

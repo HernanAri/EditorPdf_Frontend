@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SafeResourceUrl } from '@angular/platform-browser';
 
-type ConversionFormat = 'excel' | 'word' | 'power point';
+type ConversionFormat = 'excel' | 'word' | 'power point' | 'odt' | 'ods';
 
 @Component({
   selector: 'app-convertidor',
@@ -62,7 +62,9 @@ export class ConvertidorComponent implements OnChanges {
     const labels = {
       'excel': 'Excel',
       'word': 'Word',
-      'power point': 'PowerPoint'
+      'power point': 'PowerPoint',
+      'odt': 'ODT',
+      'ods': 'ODS'
     };
     return labels[format];
   }
@@ -141,7 +143,9 @@ export class ConvertidorComponent implements OnChanges {
     const map = {
       'excel': 'xlsx',
       'word': 'docx',
-      'power point': 'pptx'
+      'power point': 'pptx',
+      'odt': 'odt',
+      'ods': 'ods',
     };
     return map[format] || 'pdf';
   }
