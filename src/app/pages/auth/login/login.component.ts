@@ -88,15 +88,12 @@ export class LoginComponent implements OnInit {
             this._messageService.add({ severity: 'error', summary: 'Error', detail: respuesta.error.message });
           }
           if (!respuesta?.ResultadoExitoso) {
-            console.log(respuesta);
-            console.log(typeof  respuesta);
             this._messageService.add({ severity: 'error', summary: 'Error', detail: typeof  respuesta == 'string' ? respuesta : respuesta.VariablesDeUsuarioLogadoDTO.ErrorUsuario });
             return;
           }
         });
       }
     }
-
 
   cargarDominios() {
     if (this.domains.length == 0) {

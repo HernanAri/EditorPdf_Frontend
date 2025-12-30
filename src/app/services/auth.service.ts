@@ -76,7 +76,6 @@ export class AuthService {
             // this._messageService.add({ severity: 'error', summary: 'Error', detail: "Ocurrió un error al realizar la operación, por favor inténtelo de nuevo o comuníquese con el administrador" });
           }
           $("#ProcesoAjax").hide();
-          console.log(JSON.stringify(err));
           return throwError(err);
           return of({ error: err.error, ResultadoExitoso: false });
         })
