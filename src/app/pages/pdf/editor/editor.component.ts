@@ -141,8 +141,7 @@ export class EditorComponent implements OnChanges, OnDestroy {
       .subscribe({
         next: (blob: Blob) => {
          
-          this.revokeCurrentPreview();
-          
+          this.revokeCurrentPreview();      
           
           const url = URL.createObjectURL(blob);
           this.blobUrls.push(url); 
@@ -282,7 +281,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
       });
 
       const pdfDoc: PDFDocumentProxy = await loadingTask.promise;
-
       
       return pdfDoc.numPages;
     } catch (error) {
@@ -294,7 +292,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
       throw new Error(`No se pudo leer el PDF desde blob: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   }
-
 
   openMergeModal(): void {
     if (this.allFiles.length < 2) {
@@ -350,7 +347,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
 
     const totalPages = this.file.pages && this.file.pages > 0 ? this.file.pages : 1;
 
-
     this.modalConfig = {
       action: 'delete',
       totalPages: totalPages,
@@ -374,7 +370,6 @@ export class EditorComponent implements OnChanges, OnDestroy {
     };
     this.showModal = true;
   }
-
 
   onModalConfirm(result: ModalResult): void {
     this.showModal = false;
