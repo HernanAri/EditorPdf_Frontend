@@ -1,10 +1,10 @@
 export const environment = {
   production: false,
-  apiUrlAutenticacion: 'https://devapps.emergiacc.com/ApiRestAutenticacion/api/Login/Authenticate',
-  apiUrlAutenticacionIdSesion: 'https://devapps.emergiacc.com/ApiRestCandidatoPrueba/api/Login/AuthenticateByIdSesion',
-  apiUrlAutenticacionAD: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/LoginFT?IdiomaNavegador=ES&Sistema=CANS',
-  apiUrlDominio: 'https://devapps.emergiacc.com/ApiGateway/ActiveDirectory/GetDomainsActiveDirectoryFromJsonAsync',
-  apiUrlUpload: 'https://devapps.emergiacc.com/EditorPdfApiRest/api/v1/pdf-file',
-  apiUrlConvertidor:'https://devapps.emergiacc.com/EditorPdfApiRest/convertir',
-  apiUrlEditor:'https://devapps.emergiacc.com/EditorPdfApiRest/herramientas/pdf',
+  apiUrlAutenticacion: '',
+  apiUrlAutenticacionIdSesion: '',
+  apiUrlAutenticacionAD: '',
+  apiUrlDominio: '',
+  apiUrlUpload: 'http://127.0.0.1:8000/api/v1/pdf-file',
+  apiUrlConvertidor:'http://127.0.0.1:8000/convertir/convertir',
+  apiUrlEditor:'http://127.0.0.1:8000/herramientas/pdf',
 };

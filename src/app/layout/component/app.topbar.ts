@@ -16,7 +16,7 @@ import { LayoutService } from '../service/layout.service';
                 <i class="pi pi-bars"></i>
             </button>
             <a class="layout-topbar-logo" routerLink="/">
-                <img src="assets/images/logo_emergia2.png" width="140" alt="">
+                <img src="assets/images/logo.png" width="140" alt="">
             </a>
         </div>
 

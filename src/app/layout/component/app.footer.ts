@@ -7,7 +7,7 @@ import { Component } from '@angular/core';
         <div class="layout-footer">
             <div class="flex justify-center">
                 <a class="layout-topbar-logo" routerLink="/">
-                    <img src="assets/images/logo_emergia2.png" width="120" alt="">
+                    <img src="assets/images/logo.png" width="120" alt="">
                 </a>
             </div>
         </div>`
